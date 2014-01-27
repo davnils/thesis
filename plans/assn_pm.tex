@@ -1,0 +1,74 @@
+\documentclass[a4paper,11pt]{article}
+
+\title{Master's thesis project: Failure detection in PV systems}
+\author{Student: David Nilsson (D5), davnils@kth.se. Supervisor: Olov Engwall}
+
+\usepackage[english]{babel}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{listings, babel}
+\lstset{breaklines=true,basicstyle=\ttfamily}
+\usepackage[margin=2cm]{geometry}
+
+\begin{document}
+
+\maketitle
+
+\section*{Background}
+PV (photovoltaic) systems are collections of solar panels connected to power
+inverters, a product which transforms the DC power from solar panels to the grid (AC power).
+Optistring is a startup building digital inverters which are capable of achieving
+better efficiency than traditional systems.
+Part of the existing product is a stream of data containing measurements from all
+solar panels in the system, making analysis of the system in various aspects possible.
+
+The purpose of this Master's thesis project is to build a software solution which
+is capable of detecting failures in PV systems.
+Part of this involves formulating the different kind of failures that may occur,
+developing a solution, and research of how failures should be presented.
+
+\section*{Scientific question}
+
+\subsubsection*{The problem}
+Two different kinds of failure conditions in solar panels are relevant: instantaneous power loss due to faulty solar panels, and gradual power degradation over time.
+The problem is how to detect these efficiently in the presence of different system configurations, but also geographic and thermal dependencies (all systems deliver different power curves). 
+
+\subsubsection*{Previous work}
+The company itself is a startup founded on research in power electronics, and does in some ways present a unique opportunity in performing this failure detection.
+One benefit of this system is real-time data from individual solar panels with several sources of information.
+It is of interest to detect failures since otherwise manual inspection is required and more fine-grained power degradation might not be easily detectable.
+
+There has been research into failure detection and the possible outcomes, such as: \\
+
+\noindent
+\emph{Monitoring and remote failure detection of grid-connected PV systems based on satellite observations} Drews, Keizer.\\
+\noindent
+\emph{Experimental studies of failure detection methods in PV module strings} Takashima, Yamaguchi.
+
+\subsubsection*{Research method}
+The problem should be solved by surveying possible approaches to performing classification in continuously changing measurements.
+This includes understanding how statistical methods are applicable to the problem of classifying the state of solar panels.
+Additionally, the results should be validated by performing simulations in different conditions that are present in real life.
+
+\subsubsection*{Possible outcomes}
+There are several possible outcomes. Firstly, the detection might be limited to simple cases, such as when there is a transient power failure.
+Secondly, the more general detection of gradual power loss might be limited to certain conditions, due to reasons such as limited statistical significance in detection.
+
+\subsubsection*{Evaluation}
+The success of the project can be evaluated by checking if the relevant failure conditions are detected during different simulations.
+
+\section*{The Student's background}
+I am currently studying the theoretical computer science track, and have an interest in fields such as statistics and software development.
+Previously, I have worked at Optistring where I gained knowledge in the characteristics of solar panels, embedded software development, and data processing.
+
+\section*{Supervisor at the company}
+The main point of contact at the company is Anders Lindgren, CEO, who has a background in electronic engineering, software development, and general management.
+In the case of deeper technical issues I have support from a PhD student in power electronics and several software developers.
+In general I find these people very knowledgeable in the field of PV power equipment.
+
+\section*{Project scope}
+As of today, there are data feeds providing real time measurements of several PV farms in Sweden.
+This data is accumulated in a central database and can be analyzed.
+Hence the project can be done on top of the existing work.
+
+\end{document}
