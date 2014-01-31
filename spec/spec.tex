@@ -1,18 +1,19 @@
 \documentclass[a4paper,11pt]{article}
 
 \title{Master's thesis project specification}
+
 \author{
     Student: David Nilsson\\
-    D Programme, KTH\\
-    \texttt{davnils@kth.se}
+    \small{D Programme, KTH}\\
+    \small{\texttt{davnils@kth.se}}
     \and
     Supervisor: Olov Engwall\\
-    Professor, KTH\\
-    \texttt{engwall@kth.se}
+    \small{Professor, KTH}\\
+    \small{\texttt{engwall@kth.se}}
     \and
     Supervisor: Anders Lindgren\\
-    CEO, Optistring Technologies AB\\
-    \texttt{anders@optistring.com}
+    \small{CEO, Optistring Technologies AB}\\
+    \small{\texttt{anders@optistring.com}}
 }
 
 \usepackage[english]{babel}
@@ -29,83 +30,188 @@
 
 \section*{Problem definition}
 \subsection*{Background}
-\subsection*{Scientific question}
-
-\section*{Project goals}
-\subsection*{Motivation}
-\subsection*{Evaluation}
-
-\section*{Previous work}
-
-\section*{Method}
-
-\section*{Project scope}
-\subsection*{Available resources}
-\subsection*{Limit of scope}
-
-\section*{Project plan}
-\subsection*{Partial goals}
-\subsection*{Time plan}
-
-
-% PREVIOUSLY WRITTEN
-\begin{comment}
-\section*{Background}
 PV (photovoltaic) systems are collections of solar panels connected to power
 inverters, a product which transforms the DC power from solar panels to the grid (AC power).
-Optistring is a startup building digital inverters which are capable of achieving
+Optistring is a startup building digital inverters that are capable of achieving
 better efficiency than traditional systems.
 Part of the existing product is a stream of data containing measurements from all
 solar panels in the system, making analysis of the system in various aspects possible.
 
-The purpose of this Master's thesis project is to build a software solution which
-is capable of detecting failures in PV systems.
-Part of this involves formulating the different kind of failures that may occur,
-developing a solution, and research of how failures should be presented.
-
-\section*{Scientific question}
-
-\subsubsection*{The problem}
+One challenge is to detect when solar panel faults occur, such as broken panels or performance degradation over time.
+This occurs naturally in cases such as dust accumulation on the panel, preventing the panel from being reached by all the incoming sunlight.
 Two different kinds of failure conditions in solar panels are relevant: instantaneous power loss due to faulty solar panels, and gradual power degradation over time.
-The problem is how to detect these efficiently in the presence of different system configurations, but also geographic and thermal dependencies (all systems deliver different power curves). 
+In addition to panel faults there might also be decreased power output due to partial shading, which is temporary shading limiting the available solar energy.
+Partial shading can be assumed to occur as a regular power loss pattern and needs to be separated from the case of panel faults.
 
-\subsubsection*{Previous work}
-The company itself is a startup founded on research in power electronics, and does in some ways present a unique opportunity in performing this failure detection.
-One benefit of this system is real-time data from individual solar panels with several sources of information.
-It is of interest to detect failures since otherwise manual inspection is required and more fine-grained power degradation might not be easily detectable.
+\subsection*{Problem statement}
+Can potential faults in a solar panel, in the context of installations with the specified properties, be detected by studying the available measurements?
+This includes the capability of differentiating panel faults from partial shading of the panel.
+The problem is how to perform detection efficiently in the presence of different system configurations, but also geographic and thermal dependencies, since all systems deliver different power curves.
 
-There has been research into failure detection and the possible outcomes, such as: \\
+\section*{Project goals}
+\subsection*{Motivation}
+Faults in solar panels are important to detect due to several reasons.
+Since faults will lower power production until corrected, there is a direct loss in terms of lost output.
+The alternative approach to fault detection is having manual supervision requiring constant monitoring by costly service personnel.
+Finally, it is of interest to determine degradation over time.
+Since panels typically have a maximum expectation degradation over time, as given by the warranty, the panels can be replaced if classified as faulty.
+Automatized analysis is likely more fine-grained and capable of detecting faulty panels to a higher degree.
+
+\subsection*{Target audience}
+The main target audience interested in the outcome of this project is system builders in the field of PV power electronics.
+Fault detection in solar panels is an active research area and continually evolves, demonstrating an academic interest as well.
+The main party interested in the results is of course the supervising company, whom are likely to
+integrate a functional solution into their final product.
+
+In order to understand the report it is suitable to have a background in the PV industry, which will be the targeted reader community.
+Hence it is important to reflect on practical uses and describe how the solution fits within the whole picture and innovates upon existing solutions, including possible constraints and future work.
+
+\section*{Previous work}
+The main source of information regarding fault detection will be publicly available research papers.
+Fault detection is a field in PV power electronics and has seen some recent development, such as systems capable of learning over time.
+
+In addition, it is important to understand the different kind of faults that might occur.
+These will be gathered by surveying specific faults and different kinds of real-life conditions.
+
+The following papers provide a starting point of the literature study:\\
 
 \noindent
-\emph{Monitoring and remote failure detection of grid-connected PV systems based on satellite observations} Drews, Keizer.\\
-\noindent
-\emph{Experimental studies of failure detection methods in PV module strings} Takashima, Yamaguchi.
+Zhao, Ye, et al. \emph{Graph-based semi-supervised learning for fault detection and classification in solar photovoltaic arrays.} Energy Conversion Congress and Exposition (ECCE), 2013 IEEE. IEEE, 2013.\\
 
-\subsubsection*{Research method}
+\noindent
+Zhao, Ye, et al. \emph{Decision tree-based fault detection and classification in solar photovoltaic arrays.} Applied Power Electronics Conference and Exposition (APEC), 2012 Twenty-Seventh Annual IEEE. IEEE, 2012.\\
+
+\noindent
+Chouder, A., and S. Silvestre. \emph{Automatic supervision and fault detection of PV systems based on power losses analysis.} Energy conversion and Management 51.10 (2010): 1929-1937.\\
+
+\noindent
+Chouder, A., and S. Silvestre. \emph{Analysis model of mismatch power losses in PV systems.} Journal of Solar Energy Engineering 131.2 (2009): 24504.\\
+
+\noindent
+Stettler, S., et al. \emph{Failure detection routine for grid-connected PV systems as part of the PVSAT-2 project.} Proceedings of the 20th European Photovoltaic Solar Energy Conference \& Exhibition, Barcelona, Spain. 2005.\\
+
+\noindent
+Drews, A., et al. \emph{Monitoring and remote failure detection of grid-connected PV systems based on satellite observations.} Solar Energy 81.4 (2007): 548-564.\\
+
+All of these papers, and possibly more, will be read and understood.
+The result of the literature study will be focused on how these concepts should be applied onto fault detection subject to existing constraints.
+
+\section*{Method}
 The problem should be solved by surveying possible approaches to performing classification in continuously changing measurements.
 This includes understanding how statistical methods are applicable to the problem of classifying the state of solar panels.
-Additionally, the results should be validated by performing simulations in different conditions that are present in real life.
 
-\subsubsection*{Possible outcomes}
-There are several possible outcomes. Firstly, the detection might be limited to simple cases, such as when there is a transient power failure.
-Secondly, the more general detection of gradual power loss might be limited to certain conditions, due to reasons such as limited statistical significance in detection.
+Most likely, the two different kind of faults require different methods in order to perform reliable classification.
+Both cases will however also require research into how to differentiate between partial shading and panel faults.
+In practice this will be done by reading up on state-of-the-art research and build an understanding of how to attack the problem.
 
-\subsubsection*{Evaluation}
-The success of the project can be evaluated by checking if the relevant failure conditions are detected during different simulations.
-
-\section*{The Student's background}
-I am currently studying the theoretical computer science track, and have an interest in fields such as statistics and software development.
-Previously, I have worked at Optistring where I gained knowledge in the characteristics of solar panels, embedded software development, and data processing.
-
-\section*{Supervisor at the company}
-The main point of contact at the company is Anders Lindgren, CEO, who has a background in electronic engineering, software development, and general management.
-In the case of deeper technical issues I have support from a PhD student in power electronics and several software developers.
-In general I find these people very knowledgeable in the field of PV power equipment.
+An important part of the project is to validate and determine the classification performance of the developed method.
+Due to the nature of panel faults this will require simulation of panel systems.
+Different kinds of faults will then be injected into the system while the classifier output is monitored.
+This simulator will be built upon existing data and correspond to an approximation of real-life conditions.
 
 \section*{Project scope}
+\subsection*{Limit of scope}
+The most important scope limitation is that systems should only be studied passively, i.e. the available measurements are used to detect faulty panels.  
+Some technical constraints are present as well:
+\begin{itemize}
+\item The solar panels have 60 or 72 cells built of mono- or poly-crystalline silicon
+
+\item The installations have 14 to 24 panels connected within a small geographic area
+
+\item The available measurements (from each panel) are:
+$U$ \footnote{Voltage measured at the panel during load},
+$I$ \footnote{Current measured at the panel during load} and
+$T_{module}$ \footnote{Low resolution temperature measurement from within the PV inverter}.
+
+\end{itemize}
+
+This reflects the consumer market of smaller panel installations with some of the most common panel types.
+The type of solar panels constrains the possible output power range and defines appropriate parameters for testing.
+
+Due to time constraints, the simulation of solar panels will largely be based on existing data streams.
+These will be used a basis of generating approximate individual panel curves, limiting the amount of effort required.
+
+\subsection*{Available resources}
 As of today, there are data feeds providing real time measurements of several PV farms in Sweden.
 This data is accumulated in a central database and can be analyzed.
-Hence the project can be done on top of the existing work.
-\end{comment}
+Using this data it will be possible to verify real-life performance of the classification system, primarily to verify that working systems are not classified as faulty.
+
+Additionally there are other sources that can be used to build realistic simulation models, such as measured solar energy over several years.
+
+\section*{Project plan}
+\subsection*{Partial goals}
+\begin{itemize}
+\item Simulation framework capable of injecting faults in solar panels.
+\item Classification of transient failures in solar panels.
+\item Measurement of solar panel degradation over some time period.
+\item Identification of partial shading conditions.
+\item Classification of partial shading and power degradation.
+\end{itemize}
+
+\clearpage
+\subsection*{Time plan}
+The following points in time have been identified as suitable deadlines.
+Hand-ins are based on the official schedule established by the thesis group.
+
+\subsubsection*{Background and Theory section complete}
+\noindent
+\emph{Deadline: 2014-02-27}\\
+\noindent
+This includes gathering interesting material and doing the literature study.
+Different kind of failure conditions should be surveyed and understood in terms of detection.
+
+\subsubsection*{Simulation framework complete}
+\noindent
+\emph{Deadline: 2014-03-07}\\
+\noindent
+The first part of the work will be to establish a simulation framework.
+This will be heavily based on existing data streams and only serve as an approximation of real-life installations.
+
+\subsubsection*{Report skeleton complete}
+\noindent
+\emph{Deadline: 2014-03-19}\\
+\noindent
+By now the report will have all headings and basic keywords outlined, and should be ready for completion with experimental data and conclusions.
+
+\subsubsection*{Classification of transient failures}
+\noindent
+\emph{Deadline: 2014-03-21}\\
+\noindent
+This corresponds to detecting sudden power loss from solar panels in the context of a larger system.
+Simulation will be performed to verify that it works properly and investigate the classification rate.
+
+\subsubsection*{Measurement of degradation}
+\noindent
+\emph{Deadline: 2014-03-28}\\
+\noindent
+Degradation in solar panel performance needs to be measured in order to quantify the state of a panel.
+This analysis will result in the percentual performance decrease over a given time interval.
+
+\subsubsection*{Classification of partial shading}
+\noindent
+\emph{Deadline: 2014-04-09}\\
+\noindent
+This involves understanding regular patterns in the power output of solar panels.
+These patterns will then be accounted for in additional analysis of possible faults.
+
+\subsubsection*{Classification of partial shading and degradation}
+\noindent
+\emph{Deadline: 2014-04-18}\\
+\noindent
+A completely working implementation that is capable of detecting faults of the different types.
+Partial shading should be classified as well, at least with success rate within reasonable expectations.
+
+\subsubsection*{Preliminary report complete}
+\noindent
+\emph{Deadline: 2014-04-30}\\
+\noindent
+Preliminary report with all content included.
+This will then serve as a basis for improvements based on feedback from the thesis group and other parties.
+
+\subsubsection*{Report complete}
+\noindent
+\emph{Preliminary deadline: 2014-06-01}\\
+\noindent
+Final submission of the completed report.
 
 \end{document}
