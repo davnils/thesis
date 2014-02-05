@@ -66,6 +66,7 @@ In order to understand the report it is suitable to have a background in the PV 
 Hence it is important to reflect on practical uses and describe how the solution fits within the whole picture and innovates upon existing solutions, including possible constraints and future work.
 
 The results will be scientifically relevant since the constraints are unique for this project and a specific set of conditions will be surveyed.
+Previous studies typically involve a uniform set of solar panels and make different kinds of assumptions.
 
 \section*{Previous work}
 The main source of information regarding fault detection will be publicly available research papers.
@@ -92,7 +93,7 @@ Chouder, A., and S. Silvestre. \emph{Analysis model of mismatch power losses in 
 Stettler, S., et al. \emph{Failure detection routine for grid-connected PV systems as part of the PVSAT-2 project.} Proceedings of the 20th European Photovoltaic Solar Energy Conference \& Exhibition, Barcelona, Spain. 2005.\\
 
 \noindent
-Drews, A., et al. \emph{Monitoring and remote failure detection of grid-connected PV systems based on satellite observations.} Solar Energy 81.4 (2007): 548-564.\\
+Drews, A., et al. \emph{Monitoring and remote failure detection of grid-connected PV systems based on satellite observations.} Solar Energy 81.4 (2007): 548-564.
 
 \section*{Method}
 The first of the part of the project is the literature study.
@@ -111,6 +112,12 @@ Due to the nature of panel faults this will require simulation of panel systems.
 Different kinds of faults will then be injected into the system while the classifier output is monitored.
 This simulator will be built upon existing data and correspond to an approximation of real-life conditions.
 
+\subsection*{Evaluation}
+The success of the project can be evaluated by considering the classification performance of the developed methods.
+This involves running all the classifiers on both the simulated data but also real-life measurements, in order to consider the rate of false-positives and false-negatives.
+In the end the implemented methods are likely to be limited since for example partial shading can not always be distinguished from faulty panels.
+An evaluation would need to keep these expectations in mind while studying the classification rates.
+
 \section*{Project scope}
 \subsection*{Limit of scope}
 The most important scope limitation is that systems should only be studied passively, i.e. the available measurements are used to detect faulty panels.  
@@ -121,15 +128,14 @@ Some technical constraints are present as well:
 \item The installations have 14 to 24 panels connected within a small geographic area
 
 \item The available measurements (from each panel) are:
-$U$ \footnote{Voltage measured at the panel during load},
-$I$ \footnote{Current measured at the panel during load} and
+$U$ \footnote{Panel voltage at an optimal load},
+$I$ \footnote{Panel current at an optimal load} and
 $T_{module}$ \footnote{Low resolution temperature measurement from within the PV inverter}.
 
 \end{itemize}
 
 This reflects the consumer market of smaller panel installations with some of the most common panel types.
 The type of solar panels constrains the possible output power range and defines appropriate parameters for testing.
-
 Due to time constraints, the simulation of solar panels will largely be based on existing data streams.
 These will be used a basis of generating approximate individual panel curves, limiting the amount of effort required.
 
