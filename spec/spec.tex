@@ -71,11 +71,11 @@ Previous studies typically involve a uniform set of solar panels and make differ
 \section*{Previous work}
 The main source of information regarding fault detection will be publicly available research papers.
 Fault detection is a field in PV power electronics and has seen some recent development, such as systems capable of learning over time.
-
 In addition, it is important to understand the different kind of faults that might occur.
 These will be gathered by surveying specific faults and different kinds of real-life conditions.
 
-The following papers provide a starting point of the literature study:\\
+The following list of papers provide a starting point of the literature study.
+Computer science is present to a varying degree but many fault detection papers contain at least an algorithmic description.\\
 
 \noindent
 Zhao, Ye, et al. \emph{Graph-based semi-supervised learning for fault detection and classification in solar photovoltaic arrays.} Energy Conversion Congress and Exposition (ECCE), 2013 IEEE. IEEE, 2013.\\
@@ -116,7 +116,14 @@ This simulator will be built upon existing data and correspond to an approximati
 The success of the project can be evaluated by considering the classification performance of the developed methods.
 This involves running all the classifiers on both the simulated data but also real-life measurements, in order to consider the rate of false-positives and false-negatives.
 In the end the implemented methods are likely to be limited since for example partial shading can not always be distinguished from faulty panels.
-An evaluation would need to keep these expectations in mind while studying the classification rates.
+
+Concretely, the following list of expected performance bounds have been identified.
+They are applicable assuming that the classifier has a sufficient amount of data available.
+\begin{itemize}
+\item Partial shading shall be classified better than random guessing, assuming that the solar panel is delivering less than expected.
+\item Sudden power loss should be successfully classified assuming at least a degradation rate of $10\%$ per minute, with no false-positives.
+\item Degradation measurements should have a maximum percentual error of $\pm 5\%$. Classification should be successful within the same bounds.
+\end{itemize}
 
 \section*{Project scope}
 \subsection*{Limit of scope}
@@ -148,18 +155,20 @@ Additionally there are other sources that can be used to build realistic simulat
 
 \section*{Project plan}
 \subsection*{Partial goals}
-\begin{itemize}
+\begin{enumerate}
 \item Simulation framework capable of injecting faults in solar panels.
 \item Classification of sudden power loss in solar panels.
 \item Measurement of solar panel degradation over some time period.
 \item Identification of partial shading conditions.
 \item Classification of partial shading and power degradation.
-\end{itemize}
+\end{enumerate}
 
 \clearpage
 \subsection*{Time plan}
 The following points in time have been identified as suitable deadlines.
 Hand-ins are based on the official schedule established by the thesis group.
+The numbered headings refer to partial goals described previously.
+All of the tasks will be executed sequentially.
 
 \subsubsection*{Background and Theory section complete}
 \noindent
@@ -168,7 +177,7 @@ Hand-ins are based on the official schedule established by the thesis group.
 This includes gathering interesting material and doing the literature study.
 Different kinds of failure conditions should be surveyed and understood in terms of detection.
 
-\subsubsection*{Simulation framework complete}
+\subsubsection*{(1) Simulation framework complete}
 \noindent
 \emph{Deadline: 2014-03-07}\\
 \noindent
@@ -181,28 +190,28 @@ This will be heavily based on existing data streams and only serve as an approxi
 \noindent
 By now the report will have all headings and basic keywords outlined, and should be ready for completion with the established results.
 
-\subsubsection*{Classification of immediate failures}
+\subsubsection*{(2) Classification of immediate failures}
 \noindent
 \emph{Deadline: 2014-03-21}\\
 \noindent
 This corresponds to detecting sudden power loss from solar panels in the context of a larger system.
 Simulation will be performed to verify that it works properly and investigate the classification rate.
 
-\subsubsection*{Measurement of degradation}
+\subsubsection*{(3) Measurement of degradation}
 \noindent
 \emph{Deadline: 2014-03-28}\\
 \noindent
 Degradation in solar panel performance needs to be measured in order to quantify the state of a panel.
 This analysis will result in the percentual performance decrease over a given time interval.
 
-\subsubsection*{Classification of partial shading}
+\subsubsection*{(4) Classification of partial shading}
 \noindent
 \emph{Deadline: 2014-04-09}\\
 \noindent
 This involves understanding regular patterns in the power output of solar panels.
 These patterns will then be accounted for in additional analysis of possible faults.
 
-\subsubsection*{Classification of partial shading and degradation}
+\subsubsection*{(5) Classification of partial shading and degradation}
 \noindent
 \emph{Deadline: 2014-04-18}\\
 \noindent
