@@ -47,7 +47,12 @@ Reasonable approaches
 
 Given characteristics in general case.
 
-Build categories of errors and discuss what they are, why they are hard to detect otherwise, and characteristics.
+Build categories of errors and discuss what they are, why they are/(are not) hard to detect otherwise, and characteristics.
 
 Build list of possible defects that can occur in solar panels (i.e. more fine-grained).
 Figure out if they can be differentiated on this scale. Has specifics such as dust been differentiated?
+
+Should simulation be mentioned in the background section?
+Not really. The general power curve outline during the year is however of interest.
+Relevant to make explicitly mention seasonal, geographical, and thermal variations
+and tie these observations into the underlying model of the solar panel.

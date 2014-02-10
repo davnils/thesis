@@ -1,0 +1,80 @@
+\documentclass[a4paper,11pt]{report}
+\pdfoutput=1
+
+\usepackage{algpseudocode}
+\usepackage{algorithm}
+\usepackage[british,english]{babel}
+\usepackage[T1]{fontenc}
+\usepackage[utf8x]{inputenc}
+\usepackage{listings, babel}
+\usepackage{graphicx}
+\usepackage[colorlinks=true,linktoc=page]{hyperref}
+\usepackage[nonumberlist]{glossaries}
+\usepackage{subcaption}
+\lstset{breaklines=true,basicstyle=\ttfamily}
+\usepackage[margin=2cm]{geometry}
+
+\selectlanguage{english}
+
+\title{Report on parameterized complexity and subgraph counting}
+\author{David Nilsson, davnils@kth.se \\ Advanced Individual Course In Computer Science (DD2464)}
+
+\newglossaryentry{MPPT}
+{
+    name=MPPT,
+    description={Maximum Power Point Tracking}
+}
+
+\makeglossaries
+\glsaddall
+
+\begin{document}
+\pagenumbering{gobble}
+
+\maketitle
+\abstract{
+  This blargh is part of the examination in the project course Advanced Individual Course In Computer Science.
+  It consists of two main parts: a text on parameterized complexity theory, and a description of a recent result related to counting thin subgraphs.
+  The first part is an introductory text explaining common complexity classes, known results, and lower bounds.
+  In addition to describing the counting algorithm there is also an introduction to counting structural properties in graph theory.
+  Finally an implementation of the counting algorithm is analyzed, including correctness verification and benchmarks.
+}
+
+\tableofcontents
+\cleardoublepage
+\pagenumbering{arabic}
+
+\printglossaries
+
+\chapter{blargh1}
+blargh
+
+\section{blargh}
+
+\chapter{blargh2}
+blargh
+
+\section{blargh}
+blargh
+
+
+\begin{thebibliography}{10}
+
+\bibitem{BHKK13}
+A.~{Bj{\"o}rklund}, P.~Kaski, and {\L}.~Kowalik.
+\newblock Counting thin subgraphs via packings faster than meet-in-the-middle time.
+\newblock {\em arXiv} preprint arXiv:1306.4111, 2013.
+
+\bibitem{FG06}
+J.~Flum, and M.~Grohe.
+\newblock Parameterized complexity theory.  Vol. 3.
+\newblock Heidelberg: Springer, 2006.
+
+\bibitem{FG04}
+J.~Flum, and M.~Grohe.
+\newblock The parameterized complexity of counting problems.
+\newblock {\em SIAM J. Comput.}, 33(4):892--922, 2004.
+
+\end{thebibliography}
+
+\end{document}

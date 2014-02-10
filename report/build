@@ -1,0 +1,4 @@
+#!/bin/bash
+tt
+makeglossaries report.glo
+tt; tt
