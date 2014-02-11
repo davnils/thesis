@@ -1,0 +1,14 @@
+http://pvoutput.org/intraday.jsp?id=18301&sid=16121&dt=20140205&gs=0&m=0
+ger 5min intervall, valfritt datum, färdigt för scraping
+inte samma möjligheter via APIet
+saknar dock riktig väderstation. eventuellt går det att diffa närliggande system eller nått..
+
+http://pv-map.apvi.org.au
+aggeregat baserat på pvoutput.
+kan vara mera stabilt att studera summationen (med hög precision) och
+dela med Whp för det simulerade systemet.
+
+opti-kth och SMA-kth finns tillgängliga med dataflöden, dock ingen referens.
+kan dock vara lämpligt att jämföra parvis.
+
+mera?
