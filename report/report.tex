@@ -3,7 +3,7 @@
 
 \usepackage{algpseudocode}
 \usepackage{algorithm}
-\usepackage[british,english]{babel}
+\usepackage[english,swedish]{babel}
 \usepackage[T1]{fontenc}
 \usepackage[utf8x]{inputenc}
 \usepackage{listings, babel}
@@ -16,13 +16,24 @@
 
 \selectlanguage{english}
 
-\title{Report on parameterized complexity and subgraph counting}
-\author{David Nilsson, davnils@kth.se \\ Advanced Individual Course In Computer Science (DD2464)}
+\newenvironment{abstractpage}
+  {\cleardoublepage\vspace*{\fill}\thispagestyle{empty}}
+  {\vfill\cleardoublepage}
+\newenvironment{polyAbstract}[1]
+  {\bigskip\selectlanguage{#1}%
+   \begin{center}\bfseries\abstractname\end{center}}
+  {\par\bigskip}
+
+\usepackage{lipsum}
+
+
+\title{Fault detection in photovoltaic systems}
+\author{David Nilsson, davnils@kth.se}
 
 \newglossaryentry{MPPT}
 {
     name=MPPT,
-    description={Maximum Power Point Tracking}
+    description={maximum power point tracking}
 }
 
 \makeglossaries
@@ -32,31 +43,68 @@
 \pagenumbering{gobble}
 
 \maketitle
-\abstract{
-  This blargh is part of the examination in the project course Advanced Individual Course In Computer Science.
-  It consists of two main parts: a text on parameterized complexity theory, and a description of a recent result related to counting thin subgraphs.
-  The first part is an introductory text explaining common complexity classes, known results, and lower bounds.
-  In addition to describing the counting algorithm there is also an introduction to counting structural properties in graph theory.
-  Finally an implementation of the counting algorithm is analyzed, including correctness verification and benchmarks.
-}
+
+\begin{abstractpage}
+\begin{polyAbstract}{english}
+    \lipsum[1]
+\end{polyAbstract}
+
+%TODO: Include translated version of the thesis title
+\begin{polyAbstract}{swedish}
+    \lipsum[1]
+\end{polyAbstract}
+\end{abstractpage}
+
+\selectlanguage{english}
+
+\section*{Preface}
+TBD
 
 \tableofcontents
-\cleardoublepage
-\pagenumbering{arabic}
 
 \printglossaries
+\clearpage
 
-\chapter{blargh1}
-blargh
+\pagenumbering{arabic}
 
-\section{blargh}
+\chapter{Introduction}
+TBD
 
-\chapter{blargh2}
-blargh
+\section{Overview of fault detection}
+TBD
 
-\section{blargh}
-blargh
+\section{Intended readers}
+TBD
 
+\section{Scope of this thesis}
+TBD
+
+\section{Ethical considerations}
+TBD
+
+\chapter{Background}
+TBD
+
+\section{Theory of a solar cell}
+TBD
+
+\section{Systems of solar panels}
+TBD
+
+\section{Solar power in practice}
+TBD
+
+\chapter{Theory of fault detection}
+TBD
+
+\section{Issues in photovoltaic systems}
+TBD
+
+\section{Approaches to fault detection}
+TBD
+
+\section{Measuring degradation}
+TBD
 
 \begin{thebibliography}{10}
 
@@ -64,16 +112,6 @@ blargh
 A.~{Bj{\"o}rklund}, P.~Kaski, and {\L}.~Kowalik.
 \newblock Counting thin subgraphs via packings faster than meet-in-the-middle time.
 \newblock {\em arXiv} preprint arXiv:1306.4111, 2013.
-
-\bibitem{FG06}
-J.~Flum, and M.~Grohe.
-\newblock Parameterized complexity theory.  Vol. 3.
-\newblock Heidelberg: Springer, 2006.
-
-\bibitem{FG04}
-J.~Flum, and M.~Grohe.
-\newblock The parameterized complexity of counting problems.
-\newblock {\em SIAM J. Comput.}, 33(4):892--922, 2004.
 
 \end{thebibliography}
 

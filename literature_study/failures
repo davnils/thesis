@@ -56,3 +56,15 @@ Should simulation be mentioned in the background section?
 Not really. The general power curve outline during the year is however of interest.
 Relevant to make explicitly mention seasonal, geographical, and thermal variations
 and tie these observations into the underlying model of the solar panel.
+
+
+TODO LIST
+=========
+
+* Strukturera upp rubriker för de första kapitlen
+* Skriv inledning, samt target audience etc
+* Skriv bakgrund kring PV generellt och hur ett typiskt system fungerar
+* Skriv ordlista
+* Teori: behandla vilka fel som förekommer, hur de kan upptäckas, och vilka tidigare arbeten som har förekommit inom området
+* Var hittar man data som är lämplig för att bygga simulator på?
+  Vore bra med en riktig referens, gäller att undvika felaktiga system och skapa felen explicit.
