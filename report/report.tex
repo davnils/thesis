@@ -8,11 +8,17 @@
 \maketitle
 \input{abstract.tex}
 
-\section*{Preface}
+\tableofcontents
+
+\chapter*{Preface}
+\addcontentsline{toc}{chapter}{Preface}
 TBD
 
-\tableofcontents
 \printglossaries
+\cleardoublepage
+\addcontentsline{toc}{chapter}{\listfigurename}
+\listoffigures
+\clearpage
 \pagenumbering{arabic}
 
 \chapter{Introduction}
@@ -55,6 +61,8 @@ This data has been used in order to verify real-life performance of the classifi
 Additionally there are other sources that can be used to build realistic simulation models, such as measured solar energy over several years.
 
 \section{Ethical considerations}
+%this section could possibly be integrated into the overview section
+%it should deal with sustainability, and argue for why the results of this thesis have a direct impact (with proper sources)
 TBD
 
 
@@ -67,12 +75,16 @@ TBD
 \section{Systems of solar panels}
 TBD
 
+\section{The role of PV inverters}
+TBD
+
 \section{Solar power in practice}
 TBD
 
 
 \chapter{Theory of fault detection}
 TBD
+%mention OCPD
 
 \section{Issues in photovoltaic systems}
 TBD

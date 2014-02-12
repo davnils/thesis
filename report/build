@@ -6,4 +6,4 @@ latex $FILET
 bibtex $FILEA
 makeglossaries $FILE
 pdflatex $FILET; pdflatex $FILET
-rm *.aux *.glg *.glo *.ilg *.ist *.log *.out *.toc *.acr *.gls *.idx *.blg *.bbl 2> /dev/null
+rm *.aux *.glg *.glo *.ilg *.ist *.log *.out *.toc *.acr *.gls *.idx *.blg *.bbl *.lof 2> /dev/null
