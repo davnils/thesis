@@ -1,0 +1,21 @@
+
+\newenvironment{abstractpage}
+  {\cleardoublepage\vspace*{\fill}\thispagestyle{empty}}
+  {\vfill\cleardoublepage}
+\newenvironment{polyAbstract}[1]
+  {\bigskip\selectlanguage{#1}%
+   \begin{center}\bfseries\abstractname\end{center}}
+  {\par\bigskip}
+
+\begin{abstractpage}
+\begin{polyAbstract}{english}
+    \lipsum[1]
+\end{polyAbstract}
+
+%TODO: Include translated version of the thesis title
+\begin{polyAbstract}{swedish}
+    \lipsum[1]
+\end{polyAbstract}
+\end{abstractpage}
+
+\selectlanguage{english}

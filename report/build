@@ -3,3 +3,4 @@ FILE=report.tex
 latex $FILE
 makeglossaries report
 pdflatex $FILE; pdflatex $FILE
+rm *.aux *.glg *.glo *.ilg *.ist *.log *.out *.toc *.acr *.gls *.idx 2> /dev/null
