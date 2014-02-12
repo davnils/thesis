@@ -1,4 +1,5 @@
 #!/bin/bash
-tt
-makeglossaries report.glo
-tt; tt; pdflatex report.tex; pdflatex report.tex
+FILE=report.tex
+latex $FILE
+makeglossaries report
+pdflatex $FILE; pdflatex $FILE
