@@ -1,6 +1,9 @@
 #!/bin/bash
-FILE=report.tex
-latex $FILE
-makeglossaries report
-pdflatex $FILE; pdflatex $FILE
-rm *.aux *.glg *.glo *.ilg *.ist *.log *.out *.toc *.acr *.gls *.idx 2> /dev/null
+FILE=report
+FILET=${FILE}.tex
+FILEA=${FILE}.aux
+latex $FILET
+bibtex $FILEA
+makeglossaries $FILE
+pdflatex $FILET; pdflatex $FILET
+rm *.aux *.glg *.glo *.ilg *.ist *.log *.out *.toc *.acr *.gls *.idx *.blg *.bbl 2> /dev/null
