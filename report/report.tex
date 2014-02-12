@@ -63,27 +63,55 @@ This data has been used in order to verify real-life performance of the classifi
 Additionally there are other sources that can be used to build realistic simulation models, such as measured solar energy over several years.
 
 \section{Ethical considerations}
+TBD
 %this section could possibly be integrated into the overview section
 %it should deal with sustainability, and argue for why the results of this thesis have a direct impact (with proper sources)
-TBD
 
 
 \chapter{Background}
+This chapter introduces the concept of solar cells, including the underlying physics,
+and how they work together with power inverters on the system level.
+It is important to have an understanding of the underlying concepts when discussing the applicability of different methods to failure detection.
+These concepts are however generic and common knowledge in the field of PV power generation, 
+hence this chapter can be skipped given a sufficient existing background.
+
+\section{Theory of the solar cell}
 TBD
 
-\section{Theory of a solar cell}
-TBD
+\begin{figure}[here]
+\centering
+
+\subimage{solar-cell-equiv.png}{solar-cell-equiv}{Equivalent circuit of a solar cell}{
+  Equivalent circuit of a solar cell based on a current source and diode, with losses represented by a series and a parallel resistance.
+}{0.4}
+~
+\begin{subfigure}[b]{0.4\textwidth}
+  \begin{tabular}{| c | c |}
+  \hline
+  $I_{load}$ & load current \\ \hline
+  $V_{out}$ & output potential \\ \hline
+  $I_{photo}$ & photogenerated current \\ \hline
+  $I_{diode}$ & diode current \\ \hline
+  $I_{par}$ & shunt current \\ \hline
+  $R_{par}$ & shunt resistance \\ \hline
+  $R_{serie}$ & serial resistance \\ \hline
+  \end{tabular}
+  \caption[solar-cell-variables]{Variables of the one-diode model.}
+  \label{fig:one-diode-model-vars}
+\end{subfigure}
+
+\end{figure}
 
 \image{trina-60cell-iv-alpha.png}{trina-iv-curve}{Trina P05 IV-curve characteristic}{
   TBD
 }
 
+\section{Systems of solar panels}
+TBD
+
 \image{solar-module-generic.jpg}{solar-module-generic}{Generic solar module}{
   Back and front of a generic 54-cell Silicon solar module. Every cell and the vertical interconnections are clearly visible.
 }
-
-\section{Systems of solar panels}
-TBD
 
 \section{The role of PV inverters}
 TBD
@@ -108,6 +136,17 @@ TBD
 TBD
 
 \section{Measuring degradation}
+TBD
+
+
+\chapter{Analysis}
+TBD
+
+
+\chapter{Results}
+TBD
+
+\section{Conclusion}
 TBD
 
 \bibliographystyle{abbrv}

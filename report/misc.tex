@@ -1,8 +1,18 @@
+\graphicspath{ {./images/} }
+
 \newcommand{\image}[4]{
   \begin{figure}[here]
-  \centering
-  \includegraphics[width=10cm]{images/#1} 
-  \caption[#3]{#4}
-  \label{fig:#2}
+    \centering
+    \includegraphics[width=10cm]{#1}
+    \caption[#3]{#4}
+    \label{fig:#2}
   \end{figure}
+}
+
+\newcommand{\subimage}[5]{
+  \begin{subfigure}[b]{#5\textwidth}
+    \includegraphics[width=\textwidth]{#1}
+    \caption[#3]{#4}
+    \label{fig:#2}
+  \end{subfigure}
 }
