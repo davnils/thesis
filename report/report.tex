@@ -26,30 +26,10 @@
 
 \usepackage{lipsum}
 
-
 \title{Fault detection in photovoltaic systems}
 \author{David Nilsson, davnils@kth.se}
 
-\newglossaryentry{MPP}
-{
-  name=MPP,
-  description={maximum power point}
-}
-
-\newglossaryentry{MPPT}
-{
-  name=MPPT,
-  description={maximum power point tracking}
-}
-
-\newglossaryentry{solar-module}
-{
-  name=solar module,
-  description={A box containing several interconnected solar cells}
-}
-
-\makeglossaries
-\glsaddall
+\input{glossary.tex}
 
 \begin{document}
 \pagenumbering{gobble}
@@ -86,10 +66,37 @@ TBD
 TBD
 
 \section{Intended readers}
-TBD
+The main target audience interested in this thesis are companies building products in the field of PV power electronics.
+Fault detection in solar panels is an active research area and continually evolves, demonstrating an academic interest as well.
+The main party interested in the results is of course the supervising company, whom are likely to
+integrate a functional solution into their final product.
+While being a fairly specialized thesis, it should be comprehensible to anyone with a basic background in statistics.
 
 \section{Scope of this thesis}
-TBD
+The most important scope limitation is that systems should only be studied passively, i.e. the available measurements are used to detect faulty panels.  
+Some technical constraints are present as well:
+\begin{itemize}
+\item The solar panels have 60 or 72 cells built of mono- or poly-crystalline silicon
+
+\item The installations have 14 to 24 panels connected within a small geographic area
+
+\item The available measurements (from each panel) are:
+$U$ \footnote{Panel voltage at an optimal load},
+$I$ \footnote{Panel current at an optimal load} and
+$T_{module}$ \footnote{Low resolution temperature measurement from within the PV inverter}.
+
+\end{itemize}
+
+This reflects the consumer market of smaller panel installations with some of the most common panel types.
+The type of solar panels constrains the possible output power range and defines appropriate parameters for testing.
+Due to time constraints, the simulation of solar panels will largely be based on existing data streams.
+These will be used a basis of generating approximate individual panel curves, limiting the amount of effort required.
+
+The supervising provide data feeds providing real time measurements of several PV installations in Sweden.
+This data is accumulated in a central database and can be analyzed.
+This data has been used in order to verify real-life performance of the classification system, primarily to verify that working systems are not classified as faulty.
+
+Additionally there are other sources that can be used to build realistic simulation models, such as measured solar energy over several years.
 
 \section{Ethical considerations}
 TBD
