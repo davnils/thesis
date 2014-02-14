@@ -184,6 +184,7 @@ This approach is however constrained due to individual modules having an unpropo
 
 \image{optistring-inverter.jpg}{optistring-inverter}{Optistring PV inverter}{
   The distributed Optistring PV inverter with DC input and AC output.
+  A separate inverter is placed on the back of every solar panel.
 }
 
 The system considered in this study is a distributed version.
@@ -202,23 +203,24 @@ Previous studies have also found that MPP tracking, known as MPPT, might prevent
 \section{Solar power in practice}
 Given an understanding of the different components of a PV solar installation it is also important to reflect on real-life behaviour.
 The power output of an installatino and individual solar panels vary to a large degree.
-Figure \ref{} and \ref{} iluustrate this, where a 10-fold decrease in peak power output is seen over a period of 3 months.
+Figure \ref{fig:january-power-curve} and \ref{fig:october-power-curve} illustrate this, where a 10-fold decrease in peak power output is seen over a period of 3 months.
 In addition the total duration of power output is reduced by 4 hours.
 
 \begin{figure}[here]
 \centering
 \subimage{january-power-curve.png}{january-power-curve}{TBD}{
-  Power curve captured from a 16-module installation based in Stockholm, in January 2014.
+  Power curve captured from a 16-module installation based in Stockholm, Sweden, captured in the month of January 2014.
 }{0.48}
 ~
 \subimage{october-power-curve.png}{october-power-curve}{TBD}{
-  Same system captured in October 2013.
+  Same system as in figure \ref{fig:january-power-curve} captured in October 2013.
 }{0.48}
 \end{figure}
 
 After sunset and during periods of negligeble irradiance the system is completely shutdown.
 In addition to seasonal and geographical dependencies, the power output is also proportional to the number of solar panels in the system and the type of each panel.
-All of these highly varying conditions impose restrictions on how fault detection can be implemented and the required scope of testing.
+All of these highly varying conditions impose restrictions on how fault detection can be implemented and the required scope of validation.
+The main point is that developed methods need to be dynamic and adaptive to any of the applicable system configurations.
 
 \chapter{Theory of fault detection}
 TBD
