@@ -69,7 +69,7 @@ TBD
 % this section could possibly be integrated into the overview section
 % it should deal with sustainability, and argue for why the results of this thesis have a direct impact (with proper sources)
 % also have an estimate of how large the improvements can be (probably like a range)
-%include: safety hazards (demonstrated), efficiency concerns (demonstrated), reduced work force
+% include: safety hazards (demonstrated), efficiency concerns (demonstrated), reduced work force
 
 \chapter{Background}
 This chapter introduces the concept of solar cells, including the underlying physics,
@@ -242,23 +242,17 @@ it is possible to reason about faults.
 Faults in PV systems can be characterized as permanent power losses but a more fine-grained analysis might be suitable if there are failure-specific patterns that can be utilized.
 This chapter gives an overview of possible failure conditions and describes the different kinds of methods that have been established by previous studies.
 
-% mention OCPD, GPD, and possible other types of existing protection devices
-% also bind these to the insufficient protection (as shown by the thesis and others)
-% provides a great motivation: both environmental and safety improvements through this work.
-
 \section{Issues in photovoltaic systems}
-several issues present in PV systems \cite{Baltus1997,King2002,Petrone2008}.
+There are a lot of different issues present in PV systems \cite{Baltus1997,King2002,Petrone2008}, demonstrating an interest in detecting faults to the greatest extent as early as possible.
 
-list of errors \cite{Stettler2005}
-
-One study \cite{Munoz2011} discusses the following failures in solar modules:
+A study conducted in Spain\cite{Munoz2011} discusses the following failures in solar modules:
 \begin{itemize}
 \item Yellowing and browning
 \item Delamination
-\item Bubbles in the TODO
+\item Bubbles in the solar module
 \item Cracks in cells
 \item Defects in anti-reflective coating
-\item Hot spots caused by TODO
+\item Hot spots caused by the panel acting as a load
 \end{itemize}
 
 Another study\cite{Forman1982} identified the following conditions:
@@ -272,28 +266,58 @@ Another study\cite{Forman1982} identified the following conditions:
 
 It has also been found that connections and the weldings connectors can be degraded over time \cite{Houssein2010}.
 
-In conclusion it can be said that there is a wide range of failure conditions and TODO.
-This breadth motivates the use of classes of failures, such as the TODO used by TODO. 
+In conclusion it can be said that there is a wide range of failure conditions.
+This breadth motivates the use of classes of failures, based on the electrical properties induced during a fault.
+\cite{Zhao2010thesis} and the papers \cite{Zhao2012tree,Zhao2013graph,Zhao2013outlier} use a categorization into ground faults, line-line faults, and open-circuit faults.
+Ground faults are defined as a conductor accidentally having contact with the system ground\cite{Zhao2010thesis}.
+Line-line faults occur when two different potential conduct by accident\cite{Zhao2010thesis}.
+Open-circuit faults occur when a conductor is accidentally removed from a closed circuit\cite{Zhao2010thesis}.
+\cite{Zhao2010thesis} concludes that ground and line-line faults typically exhibit a singificant drop in output voltage.
+It also states that open-circuit faults and degradation causes significant decrease in current.
 
-\cite{Zhao2010thesis} and the following papers \cite{Zhao2012tree,Zhao2013graph,Zhao2013outlier} uses a categorization (ground, line-line)
-mention that classification is out of scope for this thesis.
+The same thesis found that protection devices commonly present in PV installations known as over-current protection devices (OCPD) and ground protection (GPD) are not sufficient.
+During certain kinds of faults the MPPT may interfere and lower the current output, which in turn will not trigger the current-based protection devices.
+Similar issues are present when faults occur during the night \cite{Zhao2010night}.
 
-dust is a problem \cite{Mani2010} at certain geographical locations
+In the context of degradation over time it has been found that dust is a significant problem \cite{Mani2010}.
+These effects are however very dependent on the geographical position and the physical alignment with respect to weather conditions.
 
-early degradation occurs \cite{Munoz2011}, tie to warranty
+A study \cite{Munoz2011} found that early degradation occurs due to wide variety for reasons.
+The paper ties the measured degradation rates to a specific allowance, based on the guarantee from the manufacturer.
+It discusses a typical guarantee of $90\%$ over 10-15 years and $80\%$ over 20-25 years in preserved nominal power.
+
+\cite{Meyer2004} notes that degradation in the anti-reflective coating results in a brightening in the color of the cell.
+It can also be detected in the module's maximum attainable voltage and current.
+The paper discusses solar cell degradation as three different factors being involved in relation to the one-diode model figure \ref{fig:solar-cell-equiv}.
+The first is an increase in series resistance, the second is a decrease in the parallel resistance (which implies a larger loss current), and the third being detoriation of the antireflection coating affecting the photogenerated current.
+
+Concrete percentual figures of degradation have also been studied\cite{Quintana2002}, which cites a degradation rate of about $0.7\%$ per year for multi-crystalline modules.
+There is also a note on that the system may continue to operate in degraded conditions without causing an intermediate failure.
+The paper also describes a condition known as \emph{light induced degradation} (LID) which is a module degradation
+that occurs during the first few hours of sunlight exposure.
+It states that at most a $5\%$ degradation in maximum attainable current has been observed.
 
 \section{Partial shading of solar panels}
-TBD
+Partial shading occurs when a subset of the PV array is shaded to some degree.
+This occurs naturally for example due to passing clouds.
+Nearby obstacles might also interfere and cast shadows, resulting in reduced power output.
+Hence shading conditions is a relevant aspect when planning a PV installation.
+Due to the nature of the resulting power reduction it is also relevant to classify power output into either the case of partial shading or faulty panels.
 
-(partial) shading is seen as an error \cite{Stettler2005} %verify citation
+Some studies, e.g. \cite{Stettler2005}, view partial shading as another failure condition.
+This somewhat simpler view does not require partial shading to be separated from for example faulty solar panels.
 
-study with plots \cite{Alsayid2013} 
+Partial shading has been studied in isolation \cite{Alsayid2013}.
+The paper illustrates the effect of bypass diodes triggered due to shadow conditions, resulting in vastly non-smooth IV-curves with different characteristics.
+It does however not describe suitable classification attributes or relate shading to fault conditions.
+The results are also heavily dependent on the panel topology and placement of bypass diodes.
 
-study with applicable method \cite{Firth2010}
-
-"the proposed algorithm can differentiate easily whether it operates under the temporary partial shading..." \cite{Kang2012}
-
-percentual rates of degradation \cite{Quintana2002}
+A study based on measurements in the UK \cite{Firth2010} considers classification of faults as partial shading.
+The approach taken is to, based on the position of the sun, measure the frequency of errors at individual segments in the solar plane.
+The solar plane is viewed as solar elevation on the y axis and solar zimuth  on the x axis.
+Small 5-minute segments of this plane are then considered in isolation.
+A fault is considered as partial shading if the frequency of faults in the correponding segment is higher than an experimentally calculated threshold.
+The actual frequency is simply calculated as the number of failure-free occuences of the segment with respect to the number of faults within the segment.
 
 \section{Approaches to fault detection}
 A basic approach to detecting unexpected power loss is comparing the output with a reference value and triggering an alarm when large differences are detected.
@@ -301,7 +325,7 @@ A basic approach to detecting unexpected power loss is comparing the output with
 This approach is not applicable to this study due to insufficient weather data available.
 
 An extension to this method is building an analytical model \cite{Chouder2010,Raina2013,Chao2008}
-based on the one-diode model introduced previously (equation \ref{}).
+based on the one-diode model introduced previously (equation \ref{eq:eq-circuit}).
 Based on values retrieved from the manufacturers datasheet or through parameter extraction \cite{Eicker2005,Chouder2009,Walker2001}.
 This method relies on access to both irradiance and solar panel temperature measurements in order to calculate the reference MPP.
 This is then compared to the measured working point as previously discussed.
@@ -317,58 +341,63 @@ Otherwise the Kurskal-Wallis test is applied in order to build the corresponding
 The resulting confidence intervals can be studied for significant deviations which would imply defect solar modules.
 While not being directly applicable to this study, the papers remain relevant due to the basic assumption of only having access to power measurements.
 
-Another statistical approach is taken in \cite{Zhao2013outlier} which is centered around outlier detection.
-%TODO
+Another statistical approach is taken in \cite{Zhao2013outlier} that is centered around outlier detection.
+Similarly to \cite{Vergura2008,Vergura2009}, the outlier-paper assumes a set of identical PV strings and tries to classify deviations.
+This is done by building confidence intervals using three different methods: 3-Sigma rule, Hampel identifier, and Boxplot rule.
+All of the surveyed methods exhibit different properties but the paper concludes that the Hampel identifier and Boxplot rule are suitable for fault detection.
+Based on the assumptions made, the paper can consider all PV string currents as samples taken from a single normal distribution, allowing straight-forward statistical analysis.
+This simplification is however not directly applicable to this report.
 
-In the case of given knowledge surrounding faults it is possible to apply supervised learning, e.g. \cite{Zhao2012tree}.
-It discusses TODO.
+In the case of given knowledge surrounding faults it is possible to apply supervised learning, e.g. \cite{Zhao2012tree},
+where a labelled dataset is available of measurements classified manually.
+The paper discusses a decision tree model that takes the available measurements and locates the most probable classification based on the dataset.
+Classification performance is concluded to be very good but real-life applications are limited due to the dataset being heavily tied to a specific PV installation.
 
-\cite{Zhao2013graph} extends this result to the case of semi-supervised learning, where only a small amount of reference data is available from the start.
+\cite{Zhao2013graph} extends the previous paper to the case of graph-based semi-supervised learning, where only a small amount of reference data is available from the start.
 This approach results in significant cost reductions, due to the low amount of labeled data, but is also possible to adapt to changing conditions in different systems.
-%TODO
+The classification performance is up to $99\%$ for certain classes of errors.
 
-Finally, \cite{Kang2012} takes the approach of using a Kalman filter on TODO.
+Finally, \cite{Kang2012} takes the approach of using a Kalman filter in order to predict power output.
+The Kalman filter takes a set of noisy measurements and the underlying physical model, and produces the most probable output value in an iterative process.
+This is used in order to locate faults based on measurements of voltage, current, and panel temperature.
+Notably this permits classification without access to irradiance data.
+The requirement of access to to panel temperature is however limiting in the context of this report.
 
-There has also been research into locating the faulty panel within a string \cite{Lin2012}, which is considered less applicable when individual solar module measurements are available.
-
-%discuss limitations and applicability of individual papers
-comparison with a known reference (based on satellite data) \cite{Stettler2005}
-analytical model \cite{Chouder2010}, \cite{Raina2013}, \cite{Chao2008}, parameter extraction \cite{Eicker2005}, \cite{Chouder2009} and \cite{Walker2001}
-analysis of IV-curves and short circuit currents \cite{Meyer2004}
-inferential statistics \cite{Vergura2008,Vergura2009}
-outlier detection \cite{Zhao2013outlier}
-decision tree \cite{Zhao2012tree}
-graph-based \cite{Zhao2013graph}
-kalman \cite{Kang2012}
-
-locating faults within an array of panels \cite{Lin2012}
+There has also been research into locating the faulty panel within a string\cite{Lin2012}.
+These results can be considered less applicable when individual solar module measurements are available.
 
 \section{Measuring degradation}
-TBD
+Panel degradation needs to be measured in order to quantify the losses due to possible faulty panels that may void any established guarantee conditions.
+Traditionally several different manual techniques have been utilized\cite{Munoz2011} such as IR-based camera snapshots, exposure to strong light, and I–V curve analysis string by string.
 
-IR-based camera snapshots, "EL image technique", "I–V curve analysis can be performed string by string" \cite{Munoz2011}
-degradation seen as losses present over long time periods \cite{Stettler2005}
+The PVSAT project\cite{Stettler2005} considers faults based on their long-term effects.
+Losses are classified as panel degradation after a long period of time has passed with an energy reduction in the range of $0-20\%$.
 
-master's thesis discusses classification of degradation, seen as additional series resistance \cite{Zhao2010thesis}
-performs verification of the implemented methods by adding resistance over time (potentiometer)
+A recent master's thesis\cite{Zhao2010thesis} simulates degradation in order to test the implemented methods.
+In this model a variable series resistance is introduced in the solar module.
+The resistance is then gradually increased over time in order to provide a singificant decrease.
 
-degradation effect on fill-factor \cite{Raina2013}
+One approach to detecting degradation is measuring the fill-factor over time\cite{Raina2013}.
+The fill factor is calculated by approximating the maximum attainable current and voltage through parameter estimation.
+The paper study is however constrained to installations with measurements of irradiance and temperature, and hence not applicable to this report.
 
-least-squares on lots of data, annual comparisons \cite{Makrides2010}
+\cite{Makrides2010} evaluates degradation over longer time periods by using several techniques.
+The study assumes access to irradiation and temperature and samples the produced power during periods of high irradiance.
+All measurements are normalized by considereding both the irradiance and temperature conditions.
+These values are then averaged on a monthly basis using a least squares method.
+Annual degradation can then be quantified by comparing months pairwise over a year.
+The study makes an important remark regarding changing conditions during individual days, where all considered panel technologies suffered output losses as the day progressed.
+This is attributed to changing spectral conditions.
 
-%TODO: Aren't there any automatic methods? pretty sure that degradation has shown up as a classification category <- !
-%      This should be explicitly mentioned. The master's thesis lists degradation as a condition producing a current decrease.
+%\chapter{Analysis}
+%TBD
 
 
-\chapter{Analysis}
-TBD
+%\chapter{Results}
+%TBD
 
-
-\chapter{Results}
-TBD
-
-\section{Conclusion}
-TBD
+%\section{Conclusion}
+%TBD
 
 \bibliographystyle{abbrv}
 \bibliography{../ref.bib}
