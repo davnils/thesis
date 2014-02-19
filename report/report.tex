@@ -24,26 +24,35 @@ TBD
 \pagenumbering{arabic}
 
 \chapter{Introduction}
-TBD
+This chapter introduces the purpose of this thesis and gives a general outline of photovoltaic systems and failure detection.
+The scope and constraints of this thesis are described and put into the context of the field of PV power electronics.
 
 \section{Overview of fault detection}
-TBD
+Photovoltaic power generation has gradually become an increasingly larger source of power generation during the last few decades (source).
+This trend has been matched with research into more efficient solar panels (TODO: REF), with the current record being TODO.
+In addition research into the solar panels there is also interest in the surrounding equipment (TODO: REF).
+
+Part of these systems are power inverters converting DC energy from the solar panels to the AC grid output.
+Recently this area has progressed to distributed systems of inverters where a small inverter module is connected to every panel (TODO: REF).
+In addition to increased efficiency, this also allows individual measurements of solar panels.
+These new capabilities render new possibilities in monitoring of the health of solar panels.
+This process, known as fault detection, is an active research area.
+Fault detection aims to detect faulty and degraded solar panels as soon as possible. 
+The purpose of this thesis is to study and develop new methods for fault detection in the context of distributed inverter systems.
 
 \section{Intended readers}
 The main target audience interested in this thesis are companies building products in the field of PV power electronics.
 Fault detection in solar panels is an active research area and continually evolves, demonstrating an academic interest as well.
 The main party interested in the results is of course the supervising company, whom are likely to
 integrate a functional solution into their final product.
-While being a fairly specialized thesis, it should be comprehensible to anyone with a basic background in statistics.
+While being a fairly specialized thesis, it is comprehensible to anyone with a basic background in statistics.
 
 \section{Scope of this thesis}
 The most important scope limitation is that systems should only be studied passively, i.e. the available measurements are used to detect faulty panels.  
 Some technical constraints are present as well:
 \begin{itemize}
 \item The solar panels have 60 or 72 cells built of mono- or poly-crystalline silicon
-
 \item The installations have 14 to 24 panels connected within a small geographic area
-
 \item The available measurements (from each panel) are:
 $U$ \footnote{Panel voltage at an optimal load},
 $I$ \footnote{Panel current at an optimal load} and
@@ -65,11 +74,18 @@ This data has been used in order to verify real-life performance of the classifi
 Additionally there are other sources that can be used to build realistic simulation models, such as measured solar energy over several years.
 
 \section{Ethical considerations}
-TBD
-% this section could possibly be integrated into the overview section
-% it should deal with sustainability, and argue for why the results of this thesis have a direct impact (with proper sources)
-% also have an estimate of how large the improvements can be (probably like a range)
-% include: safety hazards (demonstrated), efficiency concerns (demonstrated), reduced work force
+From an ethical prespective this thesis has mainly a positive impact in three different ways.
+
+The first main improvement is increased efficiency due to faulty solar panels being replaced sooner.
+This improvement has a direct benefit in total produced power.
+Studies have shown.. %TODO: Fix reference and shit
+
+Secondly, the early detection of faulty panels results in less faulty panels being present in installations.
+This implies a reduction in risk of fire hazards(TODO: REF) which may affect both personell and installed equipment.
+
+Thirdly, there is a reduction in labor required for the equivalent amount of monitoring.
+The final product should send alerts upon recognizing faulty panels, bypassing any manual supervision of the systems.
+In the long term this implies cheaper installations and better sustainability for photovoltaic systems.
 
 \chapter{Background}
 This chapter introduces the concept of solar cells, including the underlying physics,
