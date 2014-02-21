@@ -14,7 +14,7 @@
 
 \chapter*{Preface}
 \addcontentsline{toc}{chapter}{Preface}
-TBD
+\lipsum[1]
 
 \printglossaries
 \cleardoublepage
@@ -25,19 +25,22 @@ TBD
 
 \chapter{Introduction}
 This chapter introduces the purpose of this thesis and gives a general outline of photovoltaic systems and failure detection.
-The scope and constraints of this thesis are described and put into the context of the field of PV power electronics.
+The scope and constraints are described and put into the context of the field of PV power electronics.
 
 \section{Overview of fault detection}
-Photovoltaic power generation has gradually become an increasingly larger source of power generation during the last few decades (source).
-This trend has been matched with research into more efficient solar panels (TODO: REF), with the current record being TODO.
-In addition research into the solar panels there is also interest in the surrounding equipment (TODO: REF).
+Photovoltaic power generation has gradually become an increasingly larger source of power generation during the last few decades\cite{Zhao2010thesis}.
+This trend has been matched with research into more efficient solar panels, with the current record being an efficiency of $44.7\%$\cite{Fraunhofer2013}.
+In addition research into solar panels there is also an established interest in the surrounding equipment.
 
 Part of these systems are power inverters converting DC energy from the solar panels to the AC grid output.
-Recently this area has progressed to distributed systems of inverters where a small inverter module is connected to every panel (TODO: REF).
-In addition to increased efficiency, this also allows individual measurements of solar panels.
-These new capabilities render new possibilities in monitoring of the health of solar panels.
+The efficiency concerns of solar panels naturally extends throughout the system, since any losses will affect the final efficiency of the complete system.
+Recently the area of PV inverters has progressed to distributed systems of inverters where a small inverter module is connected to every panel\cite{Roman2006}.
+In addition to increased efficiency this also allows individual measurements of solar panels.
+
+These new capabilities provide new possibilities in monitoring of the health of solar panels.
 This process, known as fault detection, is an active research area.
 Fault detection aims to detect faulty and degraded solar panels as soon as possible. 
+Degradation occurs naturally in solar panels and it is of interest to quantify the degradation rate over time.
 The purpose of this thesis is to study and develop new methods for fault detection in the context of distributed inverter systems.
 
 \section{Intended readers}
@@ -46,7 +49,9 @@ Fault detection in solar panels is an active research area and continually evolv
 The main party interested in the results is of course the supervising company, whom are likely to
 integrate a functional solution into their final product.
 While being a fairly specialized thesis, it is comprehensible to anyone with a basic background in statistics.
+Some basic knowledge of physics and electronic circuits is needed is as well in order to fully understand the electrical models.
 
+\clearpage
 \section{Scope of this thesis}
 The most important scope limitation is that systems should only be studied passively, i.e. the available measurements are used to detect faulty panels.  
 Some technical constraints are present as well:
@@ -60,15 +65,13 @@ $T_{module}$ \footnote{Low resolution temperature measurement from within the PV
 
 \end{itemize}
 
-%TODO: mention that classification of the error is outside the scope
-
 This reflects the consumer market of smaller panel installations with some of the most common panel types.
 The type of solar panels constrains the possible output power range and defines appropriate parameters for testing.
-Due to time constraints, the simulation of solar panels will largely be based on existing data streams.
-These will be used a basis of generating approximate individual panel curves, limiting the amount of effort required.
+Due to time constraints, the simulation of solar panels has been largely based on existing data streams.
+These are used as a basis of generating approximate individual panel curves, limiting the amount of effort required.
 
 The supervising provide data feeds providing real time measurements of several PV installations in Sweden.
-This data is accumulated in a central database and can be analyzed.
+This data is accumulated in a central database for further analysis.
 This data has been used in order to verify real-life performance of the classification system, primarily to verify that working systems are not classified as faulty.
 
 Additionally there are other sources that can be used to build realistic simulation models, such as measured solar energy over several years.
@@ -78,14 +81,16 @@ From an ethical prespective this thesis has mainly a positive impact in three di
 
 The first main improvement is increased efficiency due to faulty solar panels being replaced sooner.
 This improvement has a direct benefit in total produced power.
-Studies have shown.. %TODO: Fix reference and shit
+Studies have shown there is a singificant power loss due to faults in solar panels.
+For example a study conducted in Britain concluded losses upwards $18.9\%$ during the first year of operation\cite{Firth2010}.
+Even though such losses would not be completely eliminated, it is reasonable to conclude that more efficient and reliable detection routines results in faster replacement of faulty panels.
 
-Secondly, the early detection of faulty panels results in less faulty panels being present in installations.
-This implies a reduction in risk of fire hazards(TODO: REF) which may affect both personell and installed equipment.
+Secondly, early detection of faulty panels results in fewer faulty panels being present in installations.
+This implies a reduction in risk of fire hazards\cite{Zhao2010night} which may affect both personell and installed equipment.
 
 Thirdly, there is a reduction in labor required for the equivalent amount of monitoring.
 The final product should send alerts upon recognizing faulty panels, bypassing any manual supervision of the systems.
-In the long term this implies cheaper installations and better sustainability for photovoltaic systems.
+In the long term this implies more cost-effective installations and better sustainability for photovoltaic systems.
 
 \chapter{Background}
 This chapter introduces the concept of solar cells, including the underlying physics,
@@ -108,7 +113,7 @@ A broadly used model is the one-diode model\cite{Walker2001} as shown in figure 
 It is based on modelling the solar cell as a current source connected in parallel with a diode.
 In addition there are inherent losses due to imperfect manufacturing.
 These are modelled as a series and a parallel resistance.
-The resulting current $I_{load}$ flows across the terminals through a load with potential difference $U_{load}$.
+The resulting current $I_{load}$ flows across the terminals through a load with potential difference $U_{load}$.
 $I_{photo}$ corresponds to the amount of current generated by incoming photons which is proportional to the irradiance and area of the solar cell.
 
 \begin{figure}[!ht]
@@ -181,7 +186,6 @@ A solar module connects several solar cells and places them into a rigid enclosu
 This module can then be mounted as part of a larger system.
 Figure \ref{fig:solar-module-generic} shows a 54-cell module with the output DC terminals visible on the backside.
 
-%TODO: Add a schematic
 \image{solar-module-generic.jpg}{solar-module-generic}{Generic solar module}{
   Back and front of a generic 54-cell Silicon solar module. Every cell and the vertical interconnections are clearly visible.
 }
@@ -191,8 +195,6 @@ This thesis considers modules containing 60 or 72 solar cells of the previously 
 The resulting I-V curve of the module has an increased width and every point is stretched to $n \cdot U_{load}$ with $n$ cells each producing at some $U_{load}$.
 
 There is however also some extra components involved in the module circuitry.
-Figure \ref{} shows a schematic of a xx-cell module.
-
 The panel is divided into y substrings of which each has a diode connected in parallel.
 During normal operation the diodes will not carry any current.
 If some cell is reduced in performance, for example by having an unusually high series resistance, this will result in the corresponding diode conducting the current, effectively bypassing that specific substring\cite{Roman2006}.
@@ -417,5 +419,6 @@ This is attributed to changing spectral conditions.
 
 \bibliographystyle{abbrv}
 \bibliography{../ref.bib}
+%\printbibliography
 
 \end{document}
