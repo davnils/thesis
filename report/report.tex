@@ -30,10 +30,10 @@ The scope and constraints are described and put into the context of the field of
 \section{Overview of fault detection}
 Photovoltaic power generation has gradually become an increasingly larger source of power generation during the last few decades\cite{Zhao2010thesis}.
 This trend has been matched with research into more efficient solar panels, with the current record being an efficiency of $44.7\%$\cite{Fraunhofer2013}.
-In addition research into solar panels there is also an established interest in the surrounding equipment.
+In addition to research into solar panels there is also an established interest in the surrounding equipment.
 
 Part of these systems are power inverters converting DC energy from the solar panels to the AC grid output.
-The efficiency concerns of solar panels naturally extends throughout the system, since any losses will affect the final efficiency of the complete system.
+The efficiency concerns of solar panels naturally extend throughout the system, since any losses will affect the final efficiency of the complete system.
 Recently the area of PV inverters has progressed to distributed systems of inverters where a small inverter module is connected to every panel\cite{Roman2006}.
 In addition to increased efficiency this also allows individual measurements of solar panels.
 
@@ -77,20 +77,20 @@ This data has been used in order to verify real-life performance of the classifi
 Additionally there are other sources that can be used to build realistic simulation models, such as measured solar energy over several years.
 
 \section{Ethical considerations}
-From an ethical prespective this thesis has mainly a positive impact in three different ways.
+From an ethical perspective this thesis has mainly a positive impact in three different ways.
 
 The first main improvement is increased efficiency due to faulty solar panels being replaced sooner.
 This improvement has a direct benefit in total produced power.
-Studies have shown there is a singificant power loss due to faults in solar panels.
+Studies have shown there is a significant power loss due to faults in solar panels.
 For example a study conducted in Britain concluded losses upwards $18.9\%$ during the first year of operation\cite{Firth2010}.
 Even though such losses would not be completely eliminated, it is reasonable to conclude that more efficient and reliable detection routines results in faster replacement of faulty panels.
 
 Secondly, early detection of faulty panels results in fewer faulty panels being present in installations.
-This implies a reduction in risk of fire hazards\cite{Zhao2010night} which may affect both personell and installed equipment.
+This implies a reduction in risk of fire hazards\cite{Zhao2010night} which may affect both personnel and installed equipment.
 
 Thirdly, there is a reduction in labor required for the equivalent amount of monitoring.
 The final product should send alerts upon recognizing faulty panels, bypassing any manual supervision of the systems.
-In the long term this implies more cost-effective installations and better sustainability for photovoltaic systems.
+In the long term this implies more cost-effective installations and improved sustainability for photovoltaic systems.
 
 \chapter{Background}
 This chapter introduces the concept of solar cells, including the underlying physics,
@@ -222,7 +222,7 @@ This is highly relevant since studies in fault detection typically consider a sp
 A PV inverter should transform the power in the most efficient way and more specifically ensure that the panel is being applied to an optimal load.
 This corresponds to finding the point on the I-V curve where $I_{load} \cdot U_{load}$ is maximal.
 The maximum point is known as MPP and is typically found using some kind of search method along the I-V curve.
-Examples of this includes Pertube and Observe and Incremental conductance\cite{Roman2006}.
+Examples of this includes Pertube and Observe and Incremental Conductance\cite{Roman2006}.
 These are relevant to this study since local searches may not be well-behaved during panel faults\cite{Roman2006}.
 This is due to the existence of multiple local maxima on the I-V curve, resulting in the possible of considering a local optima as a global maxima.
 Previous studies have also found that MPP tracking, known as MPPT, might prevent faults from being observed during night-to-day transitions\cite{Zhao2010night}.
@@ -290,7 +290,7 @@ This breadth motivates the use of classes of failures, based on the electrical p
 Ground faults are defined as a conductor accidentally having contact with the system ground\cite{Zhao2010thesis}.
 Line-line faults occur when two different potential conduct by accident\cite{Zhao2010thesis}.
 Open-circuit faults occur when a conductor is accidentally removed from a closed circuit\cite{Zhao2010thesis}.
-\cite{Zhao2010thesis} concludes that ground and line-line faults typically exhibit a singificant drop in output voltage.
+\cite{Zhao2010thesis} concludes that ground and line-line faults typically exhibit a significant drop in output voltage.
 It also states that open-circuit faults and degradation causes significant decrease in current.
 
 The same thesis found that protection devices commonly present in PV installations known as over-current protection devices (OCPD) and ground protection (GPD) are not sufficient.
@@ -332,10 +332,10 @@ The results are also heavily dependent on the panel topology and placement of by
 
 A study based on measurements in the UK \cite{Firth2010} considers classification of faults as partial shading.
 The approach taken is to, based on the position of the sun, measure the frequency of errors at individual segments in the solar plane.
-The solar plane is viewed as solar elevation on the y axis and solar zimuth  on the x axis.
+The solar plane is viewed as solar elevation on the y axis and solar azimuth on the x axis.
 Small 5-minute segments of this plane are then considered in isolation.
-A fault is considered as partial shading if the frequency of faults in the correponding segment is higher than an experimentally calculated threshold.
-The actual frequency is simply calculated as the number of failure-free occuences of the segment with respect to the number of faults within the segment.
+A fault is considered as partial shading if the frequency of faults in the corresponding segment is higher than an experimentally calculated threshold.
+The actual frequency is simply calculated as the number of failure-free occurrences of the segment with respect to the number of faults within the segment.
 
 \section{Approaches to fault detection}
 A basic approach to detecting unexpected power loss is comparing the output with a reference value and triggering an alarm when large differences are detected.
@@ -353,7 +353,7 @@ Due to the nature of sweeping IV-curves this implies that this gives a reduction
 In addition it is not applicable to passive studies of systems since they can be assumed to be delivering output at MPP.
 
 \cite{Vergura2008,Vergura2009} consider several identical PV string and compares the outputs in order to classify significant deviations.
-This is done by checking if certain statistical assumptions can be made, formally that the power differences are indenpendently normally distributed with identical variance.
+This is done by checking if certain statistical assumptions can be made, formally that the power differences are independently normally distributed with identical variance.
 If this is the case a method known as analysis of variance (ANOVA) can be applied in order to build confidence interval for the power output of each PV string.
 Otherwise the Kurskal-Wallis test is applied in order to build the corresponding intervals.
 The resulting confidence intervals can be studied for significant deviations which would imply defect solar modules.
@@ -393,7 +393,7 @@ Losses are classified as panel degradation after a long period of time has passe
 
 A recent master's thesis\cite{Zhao2010thesis} simulates degradation in order to test the implemented methods.
 In this model a variable series resistance is introduced in the solar module.
-The resistance is then gradually increased over time in order to provide a singificant decrease.
+The resistance is then gradually increased over time in order to provide a significant decrease.
 
 One approach to detecting degradation is measuring the fill-factor over time\cite{Raina2013}.
 The fill factor is calculated by approximating the maximum attainable current and voltage through parameter estimation.
@@ -401,7 +401,7 @@ The paper study is however constrained to installations with measurements of irr
 
 \cite{Makrides2010} evaluates degradation over longer time periods by using several techniques.
 The study assumes access to irradiation and temperature and samples the produced power during periods of high irradiance.
-All measurements are normalized by considereding both the irradiance and temperature conditions.
+All measurements are normalized by considering both the irradiance and temperature conditions.
 These values are then averaged on a monthly basis using a least squares method.
 Annual degradation can then be quantified by comparing months pairwise over a year.
 The study makes an important remark regarding changing conditions during individual days, where all considered panel technologies suffered output losses as the day progressed.
