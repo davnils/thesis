@@ -10,10 +10,11 @@ import Data.Monoid ((<>))
 import Data.Ord (comparing)
 import Data.Time.Calendar
 import Data.Time.Clock
-import Data.Time.Clock.POSIX (utcTimeToPOSIXSeconds)
+import Data.Time.Clock.POSIX (POSIXTime, utcTimeToPOSIXSeconds)
 import Data.Time.Format (parseTime)
 import Data.Text hiding (filter, length, putStrLn, map, take, break, insert, foldl')
 import qualified Data.Vector as V
+import qualified Data.Vector.Unboxed as U
 import qualified Data.Vector.Algorithms.Intro as V
 import Lens.Family
 import Lens.Family.State.Strict
@@ -29,20 +30,15 @@ import Prelude hiding (readFile, concat)
 import qualified Prelude as PL
 import System.Locale (defaultTimeLocale)
 import System.IO (Handle(..), IOMode(..),withFile, hPutStrLn)
+import System.IO.Unsafe -- TODO: REMOVE
 import Text.Read (readMaybe)
 
-data MeasurementType
- = Voltage
- | Current
- | Power
- deriving (Eq, Ord, Show)
-
 data Row
- = Row UTCTime Double
+ = Row UTCTime Float
  deriving (Eq, Ord, Show)
 
 type TripleDay = Integer
-type ValueTable = (Day, Day, H.HashMap TripleDay (V.Vector (UTCTime, Double)))
+type ValueTable = (Day, Day, H.HashMap TripleDay (V.Vector (UTCTime, Float)))
 
 -- parse a single row on the format "2012-11-06 13:53:38	28.178"
 parseRow :: (Functor m, Monad m) => Parser Text m (Maybe Row)
@@ -62,8 +58,6 @@ parseRow = do
     date <- parseToken
     time <- parseToken
     return $ parseTime defaultTimeLocale "%F%T" (unpack $ date <> time)
-
-  parseAddress = parseToken >> return ()
 
   parseDouble = fmap (readMaybe . unpack) parseToken
 
@@ -113,20 +107,79 @@ readPowerTable handle = do
 -- write every hashtable entry in order
 writePowerTable :: Handle -> ValueTable -> IO ()
 writePowerTable handle (firstDay, lastDay, table) = do
-  -- output "raw = ["
+  output "raw = ["
   mapM_ printDay [firstDay..lastDay]
-  -- output "];"
+  output "];"
   where
   printDay day = do
     let entries = table ! (toModifiedJulianDay day)
     V.forM_ entries $ \(time, val) ->
       output $ formatTime time <> " " <> show val
-  formatTime = show
-  --formatTime = PL.takeWhile isDigit . show . utcTimeToPOSIXSeconds 
+  --formatTime = show
+  formatTime = PL.takeWhile isDigit . show . utcTimeToPOSIXSeconds 
   output = hPutStrLn handle
+
+normalizePowerTable :: ValueTable -> ValueTable 
+normalizePowerTable (f, l, table) = (f, l, H.map (V.map norm) table)
+  where
+  norm (t, v) = (t, v / maxPower)
+  maxPower = H.foldl' (\acc v -> PL.max acc (maximumOfVec v)) 0.0 table
+  maximumOfVec = snd . V.maximumBy (comparing snd)
+
+type PowerRating = Int
+type ModuleID = Int
+type SamplingInterval = Int
+
+data SolarModule
+ = SM PowerRating ModuleID
+
+gen = do
+  table <- withFile "logs/work" ReadMode readPowerTable
+  return $ generateExample table
+
+generateExample table = generatePowerCurve table 5 (toModifiedJulianDay $ utctDay day) (SM undefined undefined)
+  where
+  Just day = parseTime defaultTimeLocale "%F %T" "2014-01-26 12:00:00"
+  
+-- Generate power curve for a single module during a single day.
+-- Input data points are interpolated using a random walk.
+-- Outputs (Voltage, Current) tuples.
+generatePowerCurve :: ValueTable -> SamplingInterval -> TripleDay -> SolarModule -> U.Vector (Float, Float)
+generatePowerCurve (_, _, table) interval day (SM maxPower moduleID) = U.unfoldrN steps step iterStart
+  where
+  steps = 1 + quot (round (convertTime (V.last daily) - convertTime (V.head daily))) timeStep
+  timeStep = 60*5 :: Int
+  timeStep' = fromIntegral timeStep
+  iterStart = (V.zip daily (V.drop 1 daily), convertTime $ V.head daily, 0.0)
+  daily = table ! day
+
+  step (ref, time, prevDay) = Just ((voltage, current), (ref', time + timeStep', today))
+    where
+    (refToday, ref') = discardSamples time ref
+    current = today
+    voltage = today
+    today = extrapolate (time - timeStep') prevDay (convertTime $ refToday) (snd refToday) time
+
+convertTime = utcTimeToPOSIXSeconds . fst
+
+discardSamples :: POSIXTime -> V.Vector ((UTCTime, Float), (UTCTime, Float)) ->
+                  (((UTCTime, Float)), V.Vector ((UTCTime, Float), (UTCTime, Float)))
+discardSamples time input 
+  | convertTime (fst first) == time = (fst first, discard)
+  | otherwise = (snd first, discard)
+  where
+  first = V.head discard
+  discard = V.dropWhile (\(_, tuple) -> convertTime tuple < time) input
+
+extrapolate :: POSIXTime -> Float -> POSIXTime -> Float -> POSIXTime -> Float
+extrapolate x1 y1 x2 y2 x = k*x' + m
+  where
+  k = (y1 - y2)/(x1' - x2')
+  m = y2 - k*x2'
+  [x1', x2', x'] = map realToFrac [x1, x2, x]
 
 main :: IO ()
 main =
-  withFile "logs/work" ReadMode $ \input ->
-  withFile "logs/proc" WriteMode $ \output ->
-    readPowerTable input >>= writePowerTable output
+  withFile "logs/tmp_work" ReadMode $ \input ->
+    withFile "logs/proc.m" WriteMode $ \output ->
+      readPowerTable input >>= writePowerTable output . normalizePowerTable
