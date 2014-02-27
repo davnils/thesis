@@ -1,11 +1,12 @@
 {-# Language BangPatterns, OverloadedStrings #-}
 
 import Control.Monad (liftM2, liftM)
+import qualified Control.Monad as M
 import Control.Monad.Trans.Free
 import Data.Char (isDigit)
 import qualified Data.HashMap.Strict as H
-import Data.HashMap.Strict ((!))
 import Data.List (minimumBy, maximumBy, foldl')
+import qualified Data.List as L
 import Data.Monoid ((<>))
 import Data.Ord (comparing)
 import Data.Time.Calendar
@@ -16,6 +17,7 @@ import Data.Text hiding (filter, length, putStrLn, map, take, break, insert, fol
 import qualified Data.Vector as V
 import qualified Data.Vector.Unboxed as U
 import qualified Data.Vector.Algorithms.Intro as V
+import GHC.Float (double2Float)
 import Lens.Family
 import Lens.Family.State.Strict
 import Pipes
@@ -30,7 +32,8 @@ import Prelude hiding (readFile, concat)
 import qualified Prelude as PL
 import System.Locale (defaultTimeLocale)
 import System.IO (Handle(..), IOMode(..),withFile, hPutStrLn)
-import System.IO.Unsafe -- TODO: REMOVE
+import System.Random.MWC (asGenIO, withSystemRandom)
+import System.Random.MWC.Distributions (normal, standard)
 import Text.Read (readMaybe)
 
 data Row
@@ -112,7 +115,7 @@ writePowerTable handle (firstDay, lastDay, table) = do
   output "];"
   where
   printDay day = do
-    let entries = table ! (toModifiedJulianDay day)
+    let entries = (H.!) table (toModifiedJulianDay day)
     V.forM_ entries $ \(time, val) ->
       output $ formatTime time <> " " <> show val
   --formatTime = show
@@ -135,29 +138,42 @@ data SolarModule
 
 gen = do
   table <- withFile "logs/work" ReadMode readPowerTable
-  return $ generateExample table
+  generateExample $ normalizePowerTable table
 
-generateExample table = generatePowerCurve table 5 (toModifiedJulianDay $ utctDay day) (SM undefined undefined)
+-- generate all days, pad the ouput with zeroes, output as single vector
+generateExample table = withSystemRandom . asGenIO $ \gen -> do
+  curves <- M.forM [utctDay firstDay..utctDay lastDay] $ \day -> do
+    noise <- U.replicateM (24*12) (fmap double2Float $ normal 1.0 0.01 gen)
+    return $ genDay day noise
+
+  return $ L.intersperse padding curves
   where
-  Just day = parseTime defaultTimeLocale "%F %T" "2014-01-26 12:00:00"
+  genDay day noise = generatePowerCurve table interval (toModifiedJulianDay day) noise (SM undefined undefined)
+  Just firstDay = parseTime defaultTimeLocale "%F" "2013-02-07"
+  Just lastDay = parseTime defaultTimeLocale "%F" "2014-02-06"
+  padding = U.replicate (12*4 - 1) (0.0, 0.0)
+  interval = 5
+
+type Noise = U.Vector Float
   
 -- Generate power curve for a single module during a single day.
 -- Input data points are interpolated using a random walk.
 -- Outputs (Voltage, Current) tuples.
-generatePowerCurve :: ValueTable -> SamplingInterval -> TripleDay -> SolarModule -> U.Vector (Float, Float)
-generatePowerCurve (_, _, table) interval day (SM maxPower moduleID) = U.unfoldrN steps step iterStart
+generatePowerCurve :: ValueTable -> SamplingInterval -> TripleDay -> Noise -> SolarModule -> U.Vector (Float, Float)
+generatePowerCurve (_, _, table) interval day noise (SM maxPower moduleID) = U.unfoldrN steps step iterStart
   where
   steps = 1 + quot (round (convertTime (V.last daily) - convertTime (V.head daily))) timeStep
   timeStep = 60*5 :: Int
   timeStep' = fromIntegral timeStep
-  iterStart = (V.zip daily (V.drop 1 daily), convertTime $ V.head daily, 0.0)
-  daily = table ! day
+  iterStart = (V.zip daily (V.drop 1 daily), convertTime $ V.head daily, 0.0, 0)
+  daily = (H.!) table day
 
-  step (ref, time, prevDay) = Just ((voltage, current), (ref', time + timeStep', today))
+  step (ref, time, prevDay, noiseIdx) = Just ((voltage, current), (ref', time + timeStep', today, noiseIdx+1))
     where
     (refToday, ref') = discardSamples time ref
-    current = today
-    voltage = today
+    current = today'
+    voltage = today'
+    today' = today * ((U.!) noise noiseIdx)
     today = extrapolate (time - timeStep') prevDay (convertTime $ refToday) (snd refToday) time
 
 convertTime = utcTimeToPOSIXSeconds . fst
@@ -180,6 +196,6 @@ extrapolate x1 y1 x2 y2 x = k*x' + m
 
 main :: IO ()
 main =
-  withFile "logs/tmp_work" ReadMode $ \input ->
+  withFile "logs/work" ReadMode $ \input ->
     withFile "logs/proc.m" WriteMode $ \output ->
       readPowerTable input >>= writePowerTable output . normalizePowerTable
