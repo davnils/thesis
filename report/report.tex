@@ -168,8 +168,8 @@ Figure $\ref{fig:trina-iv-curve}$ shows a plot of $I_{load}$ as a function of $
 The panel is held at a constant temperature.
 
 %TODO: Mention that this is actually several cells connected in series.. still reflects the behaviour of a single cell
-\image{trina-60cell-iv-alpha.png}{trina-iv-curve}{Trina P05 IV-curve characteristic}{
-  TBD
+\image{trina-60cell-iv-alpha.png}{trina-iv-curve}{Solar cell IV-curve characteristic}{
+  Typical IV-curve of a solar cell. Note the non-linear relationship between voltage and current, and the effect of solar irradiation on output current.
 }
 
 In addition to changing irradiation there might also be a range of operating temperatures depending on local weather conditions.
@@ -190,7 +190,7 @@ Figure \ref{fig:solar-module-generic} shows a 54-cell module with the output DC 
   Back and front of a generic 54-cell Silicon solar module. Every cell and the vertical interconnections are clearly visible.
 }
 
-In addition to protecting the fragile Silicon sheets, the purpose of the module is also an to contain the photons by using a anti-reflective coating.
+In addition to protecting the fragile Silicon sheets, the purpose of the module is also to contain the photons by using a anti-reflective coating.
 This thesis considers modules containing 60 or 72 solar cells of the previously specified type, connected in series.
 The resulting I-V curve of the module has an increased width and every point is stretched to $n \cdot U_{load}$ with $n$ cells each producing at some $U_{load}$.
 
@@ -204,7 +204,7 @@ This is relevant since the I-V curve will reflect these properties and should be
 Solar panels produce DC current as previously described.
 This is suitable for certain types of applications such as charging batteries.
 It is however not suitable for generation on the electric grid which uses AC power at a fixed voltage.
-This translation is done using a power inverter, also known as PV inverters.
+This translation is done using a power inverter, also known as PV inverter.
 There are different topologies applicable, i.e. different arrangements of both solar panels and PV inverters.
 Traditionally a common configuration has been to use long strings of modules connected in series with a single big inverter at the end of the string.
 This approach is however constrained due to individual modules having an unproportional influence on the total power yield of the string \cite{Roman2006}.
@@ -224,7 +224,7 @@ This corresponds to finding the point on the I-V curve where $I_{load} \cdot U_{
 The maximum point is known as MPP and is typically found using some kind of search method along the I-V curve.
 Examples of this includes Pertube and Observe and Incremental Conductance\cite{Roman2006}.
 These are relevant to this study since local searches may not be well-behaved during panel faults\cite{Roman2006}.
-This is due to the existence of multiple local maxima on the I-V curve, resulting in the possible of considering a local optima as a global maxima.
+This is due to the existence of multiple local maxima on the I-V curve, resulting in the possibility of considering a local optima as a global maxima.
 Previous studies have also found that MPP tracking, known as MPPT, might prevent faults from being observed during night-to-day transitions\cite{Zhao2010night}.
 
 A relevant term applicable to measuring the efficiency of solar cells is \emph{fill factor} which is defined as the ratio between the power at $I_{MPP} \cdot U_{MPP}$ and $I_{max} \cdot U_{max}$.
@@ -288,10 +288,10 @@ In conclusion it can be said that there is a wide range of failure conditions.
 This breadth motivates the use of classes of failures, based on the electrical properties induced during a fault.
 \cite{Zhao2010thesis} and the papers \cite{Zhao2012tree,Zhao2013graph,Zhao2013outlier} use a categorization into ground faults, line-line faults, and open-circuit faults.
 Ground faults are defined as a conductor accidentally having contact with the system ground\cite{Zhao2010thesis}.
-Line-line faults occur when two different potential conduct by accident\cite{Zhao2010thesis}.
+Line-line faults occur when two different potentials conduct by accident\cite{Zhao2010thesis}.
 Open-circuit faults occur when a conductor is accidentally removed from a closed circuit\cite{Zhao2010thesis}.
-\cite{Zhao2010thesis} concludes that ground and line-line faults typically exhibit a significant drop in output voltage.
-It also states that open-circuit faults and degradation causes significant decrease in current.
+\cite{Zhao2010thesis} concludes that ground and line-line faults typically exhibit a significant drop in output voltage,
+but also states that open-circuit faults and degradation causes significant decrease in current.
 
 The same thesis found that protection devices commonly present in PV installations known as over-current protection devices (OCPD) and ground protection (GPD) are not sufficient.
 During certain kinds of faults the MPPT may interfere and lower the current output, which in turn will not trigger the current-based protection devices.
@@ -301,7 +301,7 @@ In the context of degradation over time it has been found that dust is a signifi
 These effects are however very dependent on the geographical position and the physical alignment with respect to weather conditions.
 
 A study \cite{Munoz2011} found that early degradation occurs due to wide variety for reasons.
-The paper ties the measured degradation rates to a specific allowance, based on the guarantee from the manufacturer.
+The paper ties the measured degradation rates to a specific allowance, based on guarantees from the manufacturer.
 It discusses a typical guarantee of $90\%$ over 10-15 years and $80\%$ over 20-25 years in preserved nominal power.
 
 \cite{Meyer2004} notes that degradation in the anti-reflective coating results in a brightening in the color of the cell.
@@ -313,7 +313,7 @@ Concrete percentual figures of degradation have also been studied\cite{Quintana2
 There is also a note on that the system may continue to operate in degraded conditions without causing an intermediate failure.
 The paper also describes a condition known as \emph{light induced degradation} (LID) which is a module degradation
 that occurs during the first few hours of sunlight exposure.
-It states that at most a $5\%$ degradation in maximum attainable current has been observed.
+It is stated that at most a $5\%$ degradation in maximum attainable current has been observed.
 
 \section{Partial shading of solar panels}
 Partial shading occurs when a subset of the PV array is shaded to some degree.
@@ -337,6 +337,7 @@ Small 5-minute segments of this plane are then considered in isolation.
 A fault is considered as partial shading if the frequency of faults in the corresponding segment is higher than an experimentally calculated threshold.
 The actual frequency is simply calculated as the number of failure-free occurrences of the segment with respect to the number of faults within the segment.
 
+\clearpage
 \section{Approaches to fault detection}
 A basic approach to detecting unexpected power loss is comparing the output with a reference value and triggering an alarm when large differences are detected.
 \cite{Stettler2005} takes the approach of monitoring from satellites, essentially building up known weather conditions.
@@ -344,13 +345,13 @@ This approach is not applicable to this study due to insufficient weather data a
 
 An extension to this method is building an analytical model \cite{Chouder2010,Raina2013,Chao2008}
 based on the one-diode model introduced previously (equation \ref{eq:eq-circuit}).
-Based on values retrieved from the manufacturers datasheet or through parameter extraction \cite{Eicker2005,Chouder2009,Walker2001}.
+All parameters are retrieved from the manufacturers datasheet or through parameter extraction \cite{Eicker2005,Chouder2009,Walker2001}.
 This method relies on access to both irradiance and solar panel temperature measurements in order to calculate the reference MPP.
 This is then compared to the measured working point as previously discussed.
 
 \cite{Meyer2004} describes an active approach where the whole IV-curve is studied for defects, and the maximum attainable $U_{max}$ and $I_{max}$ are recorded over time.
 Due to the nature of sweeping IV-curves this implies that this gives a reduction in power output during the analysis.
-In addition it is not applicable to passive studies of systems since they can be assumed to be delivering output at MPP.
+In addition it is not applicable to passive studies of systems since they can be assumed to deliver output at MPP.
 
 \cite{Vergura2008,Vergura2009} consider several identical PV string and compares the outputs in order to classify significant deviations.
 This is done by checking if certain statistical assumptions can be made, formally that the power differences are independently normally distributed with identical variance.
@@ -368,6 +369,7 @@ This simplification is however not directly applicable to this report.
 
 In the case of given knowledge surrounding faults it is possible to apply supervised learning, e.g. \cite{Zhao2012tree},
 where a labelled dataset is available of measurements classified manually.
+This dataset can for example be generated by measuring voltage and current of solar modules while injecting faults.
 The paper discusses a decision tree model that takes the available measurements and locates the most probable classification based on the dataset.
 Classification performance is concluded to be very good but real-life applications are limited due to the dataset being heavily tied to a specific PV installation.
 
@@ -394,6 +396,7 @@ Losses are classified as panel degradation after a long period of time has passe
 A recent master's thesis\cite{Zhao2010thesis} simulates degradation in order to test the implemented methods.
 In this model a variable series resistance is introduced in the solar module.
 The resistance is then gradually increased over time in order to provide a significant decrease.
+This loss corresponds to $R_{serie}$ in the one-diode model (figure \ref{fig:solar-cell-equiv}).
 
 One approach to detecting degradation is measuring the fill-factor over time\cite{Raina2013}.
 The fill factor is calculated by approximating the maximum attainable current and voltage through parameter estimation.
@@ -419,6 +422,5 @@ This is attributed to changing spectral conditions.
 
 \bibliographystyle{abbrv}
 \bibliography{../ref.bib}
-%\printbibliography
 
 \end{document}
