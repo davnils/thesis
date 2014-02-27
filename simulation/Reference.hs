@@ -1,5 +1,7 @@
 {-# Language BangPatterns, OverloadedStrings #-}
 
+module Reference where
+
 import Control.Monad (liftM2, liftM)
 import qualified Control.Monad as M
 import Control.Monad.Trans.Free
@@ -129,32 +131,31 @@ normalizePowerTable (f, l, table) = (f, l, H.map (V.map norm) table)
   maxPower = H.foldl' (\acc v -> PL.max acc (maximumOfVec v)) 0.0 table
   maximumOfVec = snd . V.maximumBy (comparing snd)
 
-type PowerRating = Int
+type PowerRating = Float
 type ModuleID = Int
 type SamplingInterval = Int
+type Noise = U.Vector Float
 
 data SolarModule
  = SM PowerRating ModuleID
 
-gen = do
+{-gen = do
   table <- withFile "logs/work" ReadMode readPowerTable
   generateExample $ normalizePowerTable table
 
 -- generate all days, pad the ouput with zeroes, output as single vector
 generateExample table = withSystemRandom . asGenIO $ \gen -> do
   curves <- M.forM [utctDay firstDay..utctDay lastDay] $ \day -> do
-    noise <- U.replicateM (24*12) (fmap double2Float $ normal 1.0 0.01 gen)
+    noise <- U.replicateM (24*12) (fmap double2Float $ normal 200 0.01 gen)
     return $ genDay day noise
 
   return $ L.intersperse padding curves
   where
-  genDay day noise = generatePowerCurve table interval (toModifiedJulianDay day) noise (SM undefined undefined)
+  genDay day noise = generatePowerCurve table interval (toModifiedJulianDay day) noise (SM 200 1)
   Just firstDay = parseTime defaultTimeLocale "%F" "2013-02-07"
   Just lastDay = parseTime defaultTimeLocale "%F" "2014-02-06"
   padding = U.replicate (12*4 - 1) (0.0, 0.0)
-  interval = 5
-
-type Noise = U.Vector Float
+  interval = 5 -}
   
 -- Generate power curve for a single module during a single day.
 -- Input data points are interpolated using a random walk.
@@ -171,12 +172,23 @@ generatePowerCurve (_, _, table) interval day noise (SM maxPower moduleID) = U.u
   step (ref, time, prevDay, noiseIdx) = Just ((voltage, current), (ref', time + timeStep', today, noiseIdx+1))
     where
     (refToday, ref') = discardSamples time ref
-    current = today'
-    voltage = today'
+    (current, voltage) = calculateComponents maxPower today'
     today' = today * ((U.!) noise noiseIdx)
     today = extrapolate (time - timeStep') prevDay (convertTime $ refToday) (snd refToday) time
 
 convertTime = utcTimeToPOSIXSeconds . fst
+
+calculateComponents :: PowerRating -> Float -> (Float, Float)
+calculateComponents maxPower sample
+  | sample == 0.0   = (0.0, 0.0)
+  | otherwise       = (voltage, current)
+  where
+  -- linear interpolation over range
+  voltage   = snd voltages - power/maxPower * (snd voltages - fst voltages)
+  voltages  = (20.0, openCircuitVoltage)
+  openCircuitVoltage = 6.3 * log maxPower -- 33.3V at 200Wp
+  current   = power / voltage
+  power     = PL.minimum [maxPower, sample]
 
 discardSamples :: POSIXTime -> V.Vector ((UTCTime, Float), (UTCTime, Float)) ->
                   (((UTCTime, Float)), V.Vector ((UTCTime, Float), (UTCTime, Float)))
@@ -194,8 +206,8 @@ extrapolate x1 y1 x2 y2 x = k*x' + m
   m = y2 - k*x2'
   [x1', x2', x'] = map realToFrac [x1, x2, x]
 
-main :: IO ()
+{-main :: IO ()
 main =
   withFile "logs/work" ReadMode $ \input ->
     withFile "logs/proc.m" WriteMode $ \output ->
-      readPowerTable input >>= writePowerTable output . normalizePowerTable
+      readPowerTable input >>= writePowerTable output . normalizePowerTable-}
