@@ -1,67 +1,63 @@
-{-# Language BangPatterns, OverloadedStrings #-}
+{-# Language OverloadedStrings #-}
 
-module Main where
+module Generate where
 
-import Control.Monad (liftM2, liftM)
 import qualified Control.Monad as M
-import Control.Monad.Trans.Free
-import Data.Char (isDigit)
-import qualified Data.HashMap.Strict as H
-import Data.List (minimumBy, maximumBy, foldl')
-import qualified Data.List as L
+import Control.Monad.Trans
 import Data.Monoid ((<>))
-import Data.Ord (comparing)
 import Data.Time.Calendar
 import Data.Time.Clock
-import Data.Time.Clock.POSIX (POSIXTime, utcTimeToPOSIXSeconds)
-import Data.Time.Format (parseTime)
-import Data.Text hiding (filter, length, putStrLn, map, take, break, insert, foldl')
-import qualified Data.Vector as V
+import Data.Text hiding (filter, length, map, take, break, foldl')
 import qualified Data.Vector.Unboxed as U
-import qualified Data.Vector.Algorithms.Intro as V
 import qualified Database.Cassandra.CQL as DB
 import GHC.Float (double2Float, float2Double)
-import Prelude hiding (readFile, concat)
+import Prelude
 import qualified Prelude as PL
-import System.Locale (defaultTimeLocale)
-import System.IO (Handle(..), IOMode(..),withFile, hPutStrLn)
-import System.Random.MWC (asGenIO, withSystemRandom)
-import System.Random.MWC.Distributions (normal, standard)
-import Text.Read (readMaybe)
+import System.IO (IOMode(..),withFile)
+import System.Random.MWC (create, uniformR, asGenIO, withSystemRandom)
+import System.Random.MWC.Distributions (normal)
 
 import Reference
 import Storage
 
-type SystemID = Int
+generateYear :: DB.Pool -> ValueTable -> [SolarModule] -> Integer -> SystemID -> IO ()
+generateYear pool table modules year system = withSystemRandom . asGenIO $ \gen -> do
+  putStrLn $ "Generating year: " <> show year <> " with " <> show (PL.length modules) <> " modules"
+  M.forM_ modules $ \sm@(SM maxPower addr stdDev) -> do
+    DB.runCas pool $ M.forM_ [firstDay..lastDay] $ \day -> do
+      noise <- liftIO $ U.replicateM
+        samplesPerDay (fmap double2Float $ normal (float2Double maxPower) stdDev gen)
 
--- integrate Cas monad into IO stack - where should the RNG eval take place?
-generateYear :: ValueTable -> [SolarModule] -> Int -> SystemID -> IO ()
-generateYear table modules year system = withSystemRandom . asGenIO $ \gen -> do
-  M.forM_ modules $ \sm@(SM maxPower _) -> do
-    noise <- U.replicateM (24*12*(utctDay lastDay-utctDay firstDay))
-                          (fmap double2Float $ normal (float2Double maxPower) 0.01 gen)
+      liftIO . putStrLn $ "Generating power curve for day " <> show day <> " (module: " <> show addr <> ")"
 
-    runCas pool $ M.forM_ [utctDay firstDay..utctDay lastDay] $ \day -> do
-      let daily = generatePowerCurve table 5 (toModifiedJulianDay day) (U.slice undefined noise) sm
+      let daily = generatePowerCurve table 5 day noise sm
           (voltage, current) = U.unzip daily
-      write day sm voltage current
+      write (UTCTime day 0) sm voltage current
+
   where
-  write day sm voltage current = DB.executeWrite ONE
-    (query "insert into " <> undefined <> " () values (?,?,?,?,?)")
-    (system, day, sm, U.toList voltage, U.toList current)
-    -- no vector support in cassy?
+  samplesPerDay = 24 * 12
+  write day (SM _ addr _) voltage current = DB.executeWrite DB.ONE
+    (DB.query $ "insert into "
+                <> _tableName simulationTable
+                <> " "
+                <> tableFieldsStr simulationTable
+                <> " values (?,?,?,?,?)")
+    (system, addr, day, U.toList voltage, U.toList current)
 
-  Just firstDay = parseTime defaultTimeLocale "%F" $ show year <> "-02-07"
-  Just lastDay  = parseTime defaultTimeLocale "%F" $ show (year+1) <> "-02-06"
+  firstDay  = fromGregorian year 0 1
+  lastDay   = fromGregorian year 12 31
 
-generateYears :: Int -> Int -> Int -> IO ()
+generateYears :: Integer -> Integer -> Int -> IO ()
 generateYears firstYear lastYear sys = do
+  moduleGen <- create
+  modules <- mapM (buildModule moduleGen) [1..24]
+
   table <- fmap normalizePowerTable $ withFile "logs/work" ReadMode readPowerTable
   pool <- DB.newPool [(cassandraHost, cassandraPort)] "thesis"
-  M.forM_ [firstYear..lastYear] $ \year ->
-    generateYear table modules year sys
-  where
-  modules = []
 
-main :: IO ()
-main = generateYears 1990 2000 1
+  M.forM_ [firstYear..lastYear] $ \year ->
+    generateYear pool table modules year sys
+  where
+  buildModule gen addr = do
+    power <- uniformR (180.0, 250.0) gen
+    return $ SM power addr 0.1 -- TODO: Replace stddev

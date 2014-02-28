@@ -15,6 +15,8 @@ import qualified Database.Cassandra.CQL          as DB
 import           Network                         (HostName)
 import           Network.Socket                  (ServiceName)
 
+type SystemID = Int
+
 -- | Field in Cassandra table.
 type Field = T.Text
 
@@ -65,8 +67,8 @@ simulationTable :: CassandraTable
 simulationTable = CassandraTable
   "simulation"
   [("system",  "int"),
-   ("date",    "timestamp"),
    ("module",  "int"),
+   ("date",    "timestamp"),
    ("voltage", "list<float>"),
    ("current", "list<float>"),
    ("primary key", "((system, date), module)")]
