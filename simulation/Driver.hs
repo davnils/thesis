@@ -16,6 +16,12 @@ import Retrieve
 
 parseCmd :: [String] -> IO ()
 
+parseCmd ["get_year", systemStr, moduleStr, yearStr] = retrieveYear system modules year >>= outputMatlab "output"
+  where
+  year      = read yearStr
+  modules   = read moduleStr 
+  system    = read systemStr
+
 parseCmd ["get", systemStr, moduleStr, dateStr] = retrieveDay system modules (utctDay date) >>= outputMatlab "output"
   where
   Just date = parseTime defaultTimeLocale "%F" dateStr
@@ -30,7 +36,10 @@ parseCmd ["gen", systemStr, startYearStr, endYearStr] = generateYears startYear 
 
 parseCmd _ = mapM_ putStrLn commands
   where
-  commands = ["Invalid command, use:", "./driver get system #modules date", "./driver gen system year year"]
+  commands = ["Invalid command, use:",
+              "./driver get system #modules date",
+              "./driver get_year system #modules year",
+              "./driver gen system start_year end_year"]
 
 main :: IO ()
 main = getArgs >>= parseCmd

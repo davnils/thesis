@@ -17,6 +17,8 @@ import           Network.Socket                  (ServiceName)
 
 type SystemID = Int
 
+getPool = DB.newPool [(cassandraHost, cassandraPort)] "thesis"
+
 -- | Field in Cassandra table.
 type Field = T.Text
 

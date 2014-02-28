@@ -53,7 +53,7 @@ generateYears firstYear lastYear sys = do
   modules <- mapM (buildModule moduleGen) [1..24]
 
   table <- fmap normalizePowerTable $ withFile "logs/work" ReadMode readPowerTable
-  pool <- DB.newPool [(cassandraHost, cassandraPort)] "thesis"
+  pool <- getPool
 
   M.forM_ [firstYear..lastYear] $ \year ->
     generateYear pool table modules year sys
