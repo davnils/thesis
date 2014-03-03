@@ -3,6 +3,7 @@
 module Reference where
 
 import Control.Monad (liftM2)
+import Control.Monad.Primitive (PrimState)
 import Data.Char (isDigit)
 import qualified Data.HashMap.Strict as H
 import Data.Int (Int64)
@@ -29,7 +30,7 @@ import Prelude hiding (readFile, concat)
 import qualified Prelude as PL
 import System.Locale (defaultTimeLocale)
 import System.IO (Handle, hPutStrLn)
-import System.Random.MWC (asGenIO, withSystemRandom)
+import System.Random.MWC (Gen, asGenIO, withSystemRandom)
 import System.Random.MWC.Distributions (normal, standard)
 import Text.Read (readMaybe)
 
@@ -158,20 +159,30 @@ generatePowerCurve (first, _, table) interval inputDay noise (SM maxPower _ _) =
     today'' = today' * (U.!) noise noiseIdx
     today' = extrapolate (time - timeStep') prevDay (convertTime refToday') (snd refToday') time
 
+applyVoltageNoise :: Double -> Gen (PrimState IO) -> U.Vector (Float, Float) -> IO (U.Vector (Float, Float))
+applyVoltageNoise stdDev gen vec = do
+  noise <- U.replicateM (U.length vec) $ normal 1.0 stdDev gen
+  return . U.map applyNoise $ U.zip vec noise
+  where
+  applyNoise ((voltage, current), noise) --TODO: FIX
+    | otherwise {-voltage > 20 && current > 0.01-} = (voltage', voltage*current / voltage')
+    | otherwise                     = (voltage, current)
+    where
+    voltage' = voltage * double2Float noise
+
 convertTime :: Num b => (Int64, a) -> b
 convertTime = fromIntegral . fst
 
+-- Derive voltage and current from power rating and power output.
 calculateComponents :: PowerRating -> Float -> (Float, Float)
 calculateComponents maxPower sample
   | sample == 0.0   = (0.0, 0.0)
-  | otherwise       = (voltage, current)
+  | otherwise       = (u_opt, current)
   where
-  -- linear interpolation over range
-  voltage   = snd voltages - power/maxPower * (snd voltages - fst voltages)
-  voltages  = (20.0, openCircuitVoltage)
-  openCircuitVoltage = 6.3 * log maxPower -- 33.3V at 200Wp
-  current   = power / voltage
-  power     = PL.minimum [maxPower, sample]
+  current = power / u_opt                 -- simply derive current from voltage
+  power   = PL.minimum [maxPower, sample] -- clamp at upper power limit
+  u_opt   = 0.76*u_oc                     -- well-known ratio for MPP
+  u_oc    = 6.3 * log maxPower            -- 33.3V at 200Wp
 
 discardSamples :: Int64 -> U.Vector (ValueEntry, ValueEntry) -> (ValueEntry, U.Vector (ValueEntry, ValueEntry))
 discardSamples time input 

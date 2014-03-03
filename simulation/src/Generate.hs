@@ -2,6 +2,7 @@
 
 module Generate where
 
+import qualified Control.Concurrent.Async as C
 import qualified Control.Monad as M
 import Control.Monad.Trans
 import Data.Monoid ((<>))
@@ -21,21 +22,26 @@ import Reference
 import Storage
 
 generateYear :: DB.Pool -> ValueTable -> [SolarModule] -> Integer -> SystemID -> IO ()
-generateYear pool table modules year system = withSystemRandom . asGenIO $ \gen -> do
+generateYear pool table modules year system = do
   putStrLn $ "Generating year: " <> show year <> " with " <> show (PL.length modules) <> " modules"
-  M.forM_ modules $ \sm@(SM maxPower addr stdDev) -> do
-    DB.runCas pool $ M.forM_ [firstDay..lastDay] $ \day -> do
-      noise <- liftIO $ U.replicateM
-        samplesPerDay (fmap double2Float $ normal (float2Double maxPower) stdDev gen)
+  M.void $ (`C.mapConcurrently` modules) $ \sm@(SM maxPower addr stdDev) -> do
+    withSystemRandom . asGenIO $ \gen -> do
+      liftIO . putStrLn $ "Generating power curve (module: " <> show addr <> ")"
+      DB.runCas pool $ M.forM_ [firstDay..lastDay] $ \day -> do
+        noise <- liftIO $ U.replicateM
+          samplesPerDay (fmap double2Float $ normal (float2Double maxPower) stdDev gen)
 
-      liftIO . putStrLn $ "Generating power curve for day " <> show day <> " (module: " <> show addr <> ")"
+        -- liftIO . putStrLn $ "Generating power curve for day " <> show day <> " (module: " <> show addr <> ")"
 
-      let daily = generatePowerCurve table 5 day noise sm
-          (voltage, current) = U.unzip daily
-      write (UTCTime day 0) sm voltage current
+        let curve = generatePowerCurve table 5 day noise sm
+        daily <- liftIO $ applyVoltageNoise 0.1 gen curve
+
+        let (voltage, current) = U.unzip daily
+        write (UTCTime day 0) sm voltage current
 
   where
-  samplesPerDay = 24 * 12
+  interval = 5
+  samplesPerDay = 24 * (quot 60 interval)
   write day (SM _ addr _) voltage current = DB.executeWrite DB.ONE
     (DB.query $ "insert into "
                 <> _tableName simulationTable
