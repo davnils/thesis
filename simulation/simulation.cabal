@@ -1,0 +1,55 @@
+name:                pv-sim
+version:             0.1.0.0
+synopsis:            PV power curve generation.
+description:         Generation of voltage-current curves based on a single power reference.
+category:            Simulation
+license:             BSD3
+license-file:        LICENSE
+author:              David Nilsson
+maintainer:          nilsson.dd@gmail.com
+build-type:          Simple
+cabal-version:       >=1.8
+
+executable sim-admin
+  main-is: Admin.hs
+  other-modules: Storage
+  build-depends:
+    base, 
+    time, 
+    text, 
+    old-locale, 
+    cassandra-cql, 
+    mtl, 
+    vector, 
+    unordered-containers, 
+    network ==2.4.*
+  hs-source-dirs:      src
+
+executable sim-driver
+  main-is: Driver.hs
+  other-modules: Generate, Reference, Retrieve, Storage
+  build-depends:
+    async,
+    base, 
+    lens, 
+    free, 
+    time, 
+    text, 
+    pipes, 
+    pipes-group, 
+    pipes-parse, 
+    pipes-safe, 
+    pipes-text, 
+    old-locale, 
+    cassandra-cql, 
+    mtl, 
+    vector, 
+    mwc-random, 
+    primitive, 
+    unordered-containers, 
+    vector-algorithms, 
+    lens-family-core, 
+    pipes-vector, 
+    network
+  hs-source-dirs:      src
+  ghc-options:         -O2 -threaded -rtsopts
