@@ -3,6 +3,7 @@
 FILE="pv-sim-*.tar.gz"
 DIR=pv-sim-0.1.0.0
 
+clear
 cabal clean
 cabal sdist
 scp dist/$FILE dlgh:

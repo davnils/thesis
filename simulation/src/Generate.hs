@@ -28,12 +28,8 @@ generateYear pool table modules year system = do
     withSystemRandom . asGenIO $ \gen -> do
       liftIO . putStrLn $ "Generating power curve (module: " <> show addr <> ")"
       DB.runCas pool $ M.forM_ [firstDay..lastDay] $ \day -> do
-        noise <- liftIO $ U.replicateM
-          samplesPerDay (fmap double2Float $ normal (float2Double maxPower) stdDev gen)
-
-        let curve = generatePowerCurve table 5 day noise sm
+        let curve = generatePowerCurve table 5 day sm
         daily <- liftIO $ applyVoltageNoise 0.0015 gen curve
-
         let (voltage, current) = U.unzip daily
         write (UTCTime day 0) sm voltage current
 

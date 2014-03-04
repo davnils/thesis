@@ -32,6 +32,7 @@ import System.Locale (defaultTimeLocale)
 import System.IO (Handle, hPutStrLn)
 import System.Random.MWC (Gen, asGenIO, withSystemRandom)
 import System.Random.MWC.Distributions (normal, standard)
+import System.IO.Unsafe
 import Text.Read (readMaybe)
 
 data Row
@@ -139,8 +140,8 @@ data SolarModule
 -- Generate power curve for a single module during a single day.
 -- Input data points are interpolated using a random walk.
 -- Outputs (Voltage, Current) tuples.
-generatePowerCurve :: ValueTable -> SamplingInterval -> Day -> Noise -> SolarModule -> U.Vector (Float, Float)
-generatePowerCurve (first, _, table) interval inputDay noise (SM maxPower _ _) = U.unfoldrN steps step iterStart
+generatePowerCurve :: ValueTable -> SamplingInterval -> Day -> SolarModule -> U.Vector (Float, Float)
+generatePowerCurve (first, _, table) interval inputDay (SM maxPower _ _) = U.unfoldrN steps step iterStart
   where
   day' = toModifiedJulianDay $ fromGregorian yRef mIn dIn
   (yRef, _, _) = toGregorian first
@@ -149,14 +150,13 @@ generatePowerCurve (first, _, table) interval inputDay noise (SM maxPower _ _) =
   steps = fromIntegral $ 1 + quot (convertTime (U.last daily) - convertTime (U.head daily)) timeStep
   timeStep = fromIntegral $ 60 * interval
   timeStep' = fromIntegral timeStep
-  iterStart = (U.zip daily (U.drop 1 daily), fst $ U.head daily, 0.0, 0)
+  iterStart = (U.zip daily (U.drop 1 daily), fst $ U.head daily, 0.0)
   daily = (H.!) table day'
 
-  step (ref, time, prevDay, noiseIdx) = Just ((voltage, current), (ref', time + timeStep', today', noiseIdx+1))
+  step (ref, time, prevDay) = Just ((voltage, current), (ref', time + timeStep', today'))
     where
     (refToday', ref') = discardSamples time ref
-    (current, voltage) = calculateComponents maxPower today''
-    today'' = today' * (U.!) noise noiseIdx
+    (current, voltage) = calculateComponents maxPower today'
     today' = extrapolate (time - timeStep') prevDay (convertTime refToday') (snd refToday') time
 
 applyVoltageNoise :: Double -> Gen (PrimState IO) -> U.Vector (Float, Float) -> IO (U.Vector (Float, Float))
@@ -173,16 +173,17 @@ applyVoltageNoise stdDev gen vec = do
 convertTime :: Num b => (Int64, a) -> b
 convertTime = fromIntegral . fst
 
--- Derive voltage and current from power rating and power output.
+-- Derive voltage and current from power rating and normalized irradiance
 calculateComponents :: PowerRating -> Float -> (Float, Float)
-calculateComponents maxPower sample
-  | sample == 0.0   = (0.0, 0.0)
-  | otherwise       = (u_opt, current)
+calculateComponents maxPower irradiance
+  | irradiance <= 0.0 = (0.0, 0.0)
+  | otherwise         = (u_opt, current)
   where
-  current = power / u_opt                 -- simply derive current from voltage
-  power   = PL.minimum [maxPower, sample] -- clamp at upper power limit
-  u_opt   = 0.76*u_oc                     -- well-known ratio for MPP
-  u_oc    = 6.3 * log maxPower            -- 33.3V at 200Wp
+  openCircuitRange = (snd openCircuitRange - 3, 0.16 * maxPower)  -- at most 40V at 250Wp
+  current          = (irradiance * maxPower) / u_opt              -- simply derive current from voltage
+  u_opt            = 0.76 * u_oc                                  -- well-known ratio for MPP
+  u_oc             = fst openCircuitRange + u_oc_coeff * (snd openCircuitRange - fst openCircuitRange)
+  u_oc_coeff       = (exp irradiance) / exp 1
 
 discardSamples :: Int64 -> U.Vector (ValueEntry, ValueEntry) -> (ValueEntry, U.Vector (ValueEntry, ValueEntry))
 discardSamples time input 
