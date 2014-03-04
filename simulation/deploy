@@ -1,7 +1,9 @@
 #!/bin/bash
 
 FILE="pv-sim-*.tar.gz"
+DIR=pv-sim-0.1.0.0
 
+cabal clean
 cabal sdist
 scp dist/$FILE dlgh:
-ssh -t dlgh "~/.bashrc; tar xf $FILE; cd pv-sim*; cabal clean; cabal install"
+ssh -t dlgh "~/.bashrc; rm -rf $DIR; tar xf $FILE; cd $DIR; cabal clean; cabal install"

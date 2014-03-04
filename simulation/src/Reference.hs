@@ -164,9 +164,9 @@ applyVoltageNoise stdDev gen vec = do
   noise <- U.replicateM (U.length vec) $ normal 1.0 stdDev gen
   return . U.map applyNoise $ U.zip vec noise
   where
-  applyNoise ((voltage, current), noise) --TODO: FIX
-    | otherwise {-voltage > 20 && current > 0.01-} = (voltage', voltage*current / voltage')
-    | otherwise                     = (voltage, current)
+  applyNoise ((voltage, current), noise)
+    | voltage > 0.0 = (voltage', voltage*current / voltage')
+    | otherwise    = (voltage, current)
     where
     voltage' = voltage * double2Float noise
 

@@ -31,10 +31,8 @@ generateYear pool table modules year system = do
         noise <- liftIO $ U.replicateM
           samplesPerDay (fmap double2Float $ normal (float2Double maxPower) stdDev gen)
 
-        -- liftIO . putStrLn $ "Generating power curve for day " <> show day <> " (module: " <> show addr <> ")"
-
         let curve = generatePowerCurve table 5 day noise sm
-        daily <- liftIO $ applyVoltageNoise 0.1 gen curve
+        daily <- liftIO $ applyVoltageNoise 0.0015 gen curve
 
         let (voltage, current) = U.unzip daily
         write (UTCTime day 0) sm voltage current
