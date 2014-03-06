@@ -30,6 +30,7 @@ executable sim-driver
   other-modules: Generate, Reference, Retrieve, Storage
   build-depends:
     async,
+    ad,
     base, 
     lens, 
     free, 

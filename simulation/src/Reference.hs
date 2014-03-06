@@ -21,6 +21,7 @@ import qualified Data.Vector.Unboxed as U
 import qualified Data.Vector.Algorithms.Intro as V
 import GHC.Float (double2Float)
 import Lens.Family.State.Strict
+import Numeric.AD.Newton (findZero)
 import Pipes
 import Pipes.Parse
 import Pipes.Text hiding (filter, length, unpack, map, take)
@@ -133,15 +134,16 @@ type PowerRating = Float
 type ModuleID = Int
 type SamplingInterval = Int
 type Noise = U.Vector Float
+type SolarParameters = (Int, Double, Double, Double, Double) -- #cells, I_sc, I_sat, R_ser, R_par
 
 data SolarModule
- = SM PowerRating ModuleID Double
+ = SM ModuleID SolarParameters Double
   
 -- Generate power curve for a single module during a single day.
 -- Input data points are interpolated using a random walk.
 -- Outputs (Voltage, Current) tuples.
 generatePowerCurve :: ValueTable -> SamplingInterval -> Day -> SolarModule -> U.Vector (Float, Float)
-generatePowerCurve (first, _, table) interval inputDay (SM maxPower _ _) = U.unfoldrN steps step iterStart
+generatePowerCurve (first, _, table) interval inputDay (SM _ params _) = U.unfoldrN steps step iterStart
   where
   day' = toModifiedJulianDay $ fromGregorian yRef mIn dIn
   (yRef, _, _) = toGregorian first
@@ -156,7 +158,7 @@ generatePowerCurve (first, _, table) interval inputDay (SM maxPower _ _) = U.unf
   step (ref, time, prevDay) = Just ((voltage, current), (ref', time + timeStep', today'))
     where
     (refToday', ref') = discardSamples time ref
-    (current, voltage) = calculateComponents maxPower today'
+    (current, voltage) = calculateComponents params today'
     today' = extrapolate (time - timeStep') prevDay (convertTime refToday') (snd refToday') time
 
 applyVoltageNoise :: Double -> Gen (PrimState IO) -> U.Vector (Float, Float) -> IO (U.Vector (Float, Float))
@@ -174,16 +176,25 @@ convertTime :: Num b => (Int64, a) -> b
 convertTime = fromIntegral . fst
 
 -- Derive voltage and current from power rating and normalized irradiance
-calculateComponents :: PowerRating -> Float -> (Float, Float)
-calculateComponents maxPower irradiance
+calculateComponents :: SolarParameters -> Float -> (Float, Float)
+calculateComponents params irradiance
   | irradiance <= 0.0 = (0.0, 0.0)
   | otherwise         = (u_opt, current)
   where
-  openCircuitRange = (snd openCircuitRange - 3, 0.16 * maxPower)  -- at most 40V at 250Wp
-  current          = (irradiance * maxPower) / u_opt              -- simply derive current from voltage
-  u_opt            = 0.76 * u_oc                                  -- well-known ratio for MPP
-  u_oc             = fst openCircuitRange + u_oc_coeff * (snd openCircuitRange - fst openCircuitRange)
-  u_oc_coeff       = (exp irradiance) / exp 1
+  current          = L.last $ findZero eval 5.0
+  eval i_load      =   i_photo
+                     - i_sat*(exp $ q*(r_ser*i_load + u_sm)/(k_b*t) - 1)
+                     - (r_ser*i_load + u_sm)/r_par  - i_load
+
+
+  i_photo          = i_sc * irradiance
+  u_sm             = u_opt / realToFrac cells
+  u_opt            = 0.76 * u_oc                        -- well-known ratio for MPP
+  u_oc             = (k_b*t/q) * log (i_photo/i_sat + 1) i_photo
+  k_b              = 1.38e-23
+  q                = 1.60e-19
+  t                = 273.15 + 25
+  (cells, i_sc, i_sat, r_ser, r_par) = map undefined [] -- TODO
 
 discardSamples :: Int64 -> U.Vector (ValueEntry, ValueEntry) -> (ValueEntry, U.Vector (ValueEntry, ValueEntry))
 discardSamples time input 

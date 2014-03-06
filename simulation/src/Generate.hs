@@ -59,5 +59,10 @@ generateYears firstYear lastYear sys = do
     generateYear pool table modules year sys
   where
   buildModule gen addr = do
-    power <- uniformR (180.0, 250.0) gen
-    return $ SM power addr 0.1 -- TODO: Replace stddev
+    let grab coeff lower upper = fmap (* coeff) $ uniformR (lower, upper) gen
+    cells <- fmap ([60, 72] !!) $ uniformR (0, 1) gen
+    i_sc  <- grab 1.0e+01 0.8 1.1
+    i_sat <- grab 1.0e-10 1.5 2.5
+    r_ser <- grab 1.0e-02 0.5 1.5
+    r_par <- grab 1.0e+02 1.5 2.5
+    return $ SM addr (cells, i_sat, r_ser, r_par) 0.1
