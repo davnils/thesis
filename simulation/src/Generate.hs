@@ -62,7 +62,7 @@ generateYears firstYear lastYear sys = do
     let grab coeff lower upper = fmap (* coeff) $ uniformR (lower, upper) gen
     !cells <- fmap ([60, 72] !!) $ uniformR (0, 1) gen
     !i_sc  <- grab 1.0e+01 0.9 1.1
-    !i_sat <- grab 1.0e-10 1.9 2.1
+    !i_sat <- grab 1.0e-10 1.8 2.2
     !r_ser <- grab 1.0e-02 0.8 1.2
     !r_par <- grab 1.0e+02 1.8 2.2
     return $ SM addr (cells, i_sc, i_sat, r_ser, r_par) 0.01
