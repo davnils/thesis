@@ -1,4 +1,4 @@
-{-# Language BangPatterns, OverloadedStrings #-}
+{-# Language BangPatterns, NoMonomorphismRestriction, OverloadedStrings, Rank2Types #-}
 
 module Reference where
 
@@ -21,6 +21,7 @@ import qualified Data.Vector.Unboxed as U
 import qualified Data.Vector.Algorithms.Intro as V
 import GHC.Float (double2Float)
 import Lens.Family.State.Strict
+import Numeric.AD.Types (Mode, AD)
 import Numeric.AD.Newton (findZero)
 import Pipes
 import Pipes.Parse
@@ -137,7 +138,7 @@ type Noise = U.Vector Float
 type SolarParameters = (Int, Double, Double, Double, Double) -- #cells, I_sc, I_sat, R_ser, R_par
 
 data SolarModule
- = SM ModuleID SolarParameters Double
+ = SM !ModuleID !SolarParameters !Double
   
 -- Generate power curve for a single module during a single day.
 -- Input data points are interpolated using a random walk.
@@ -158,8 +159,8 @@ generatePowerCurve (first, _, table) interval inputDay (SM _ params _) = U.unfol
   step (ref, time, prevDay) = Just ((voltage, current), (ref', time + timeStep', today'))
     where
     (refToday', ref') = discardSamples time ref
-    (current, voltage) = calculateComponents params today'
-    today' = extrapolate (time - timeStep') prevDay (convertTime refToday') (snd refToday') time
+    !(!current, !voltage) = calculateComponents params today'
+    !today' = extrapolate (time - timeStep') prevDay (convertTime refToday') (snd refToday') time
 
 applyVoltageNoise :: Double -> Gen (PrimState IO) -> U.Vector (Float, Float) -> IO (U.Vector (Float, Float))
 applyVoltageNoise stdDev gen vec = do
@@ -175,26 +176,39 @@ applyVoltageNoise stdDev gen vec = do
 convertTime :: Num b => (Int64, a) -> b
 convertTime = fromIntegral . fst
 
--- Derive voltage and current from power rating and normalized irradiance
+approxZero :: (Eq a, Fractional a, Ord a) => a -> (forall s. Mode s => AD s a -> AD s a) -> a -> a
+approxZero delta f = go . findZero f
+  where
+  go []                         = error "Invalid result from Numeric.AD.Newton.findZero"
+  go (res:[])                   = res
+  go (curr:next:rest)
+    | abs(curr - next) <= delta = next
+    | otherwise                 = go (next:rest)
+{-# INLINE approxZero #-}
+
+-- Derive voltage and current from panel specification and normalized irradiance
 calculateComponents :: SolarParameters -> Float -> (Float, Float)
-calculateComponents params irradiance
+calculateComponents (cells', i_sc', i_sat', r_ser', r_par') irradiance'
   | irradiance <= 0.0 = (0.0, 0.0)
   | otherwise         = (u_opt, current)
   where
-  current          = L.last $ findZero eval 5.0
-  eval i_load      =   i_photo
-                     - i_sat*(exp $ q*(r_ser*i_load + u_sm)/(k_b*t) - 1)
-                     - (r_ser*i_load + u_sm)/r_par  - i_load
+  current             = approxZero 0.001 eval 5                     -- approximate I_load within 1e-3
+  eval i_load         =   i_photo
+                        - i_sat*(exp $ q*(r_ser*i_load + u_cell)/(k_b*t) - 1)
+                        - (r_ser*i_load + u_cell)/r_par  - i_load
 
+  i_photo             = i_sc * irradiance
+  u_cell              = u_opt / cells
+  u_opt               = 0.76 * u_oc                                 -- well-known ratio for MPP
+  u_oc                = cells * (k_b*t/q) * log (i_photo/i_sat + 1)
+  k_b                 = 1.38e-23
+  q                   = 1.60e-19
+  t                   = 273.15 + 25
 
-  i_photo          = i_sc * irradiance
-  u_sm             = u_opt / realToFrac cells
-  u_opt            = 0.76 * u_oc                        -- well-known ratio for MPP
-  u_oc             = (k_b*t/q) * log (i_photo/i_sat + 1) i_photo
-  k_b              = 1.38e-23
-  q                = 1.60e-19
-  t                = 273.15 + 25
-  (cells, i_sc, i_sat, r_ser, r_par) = map undefined [] -- TODO
+  irradiance          = c irradiance'
+  (cells, i_sc, i_sat, r_ser, r_par)
+                      = (c cells', c i_sc', c i_sat', c r_ser', c r_par')
+  c                   = realToFrac
 
 discardSamples :: Int64 -> U.Vector (ValueEntry, ValueEntry) -> (ValueEntry, U.Vector (ValueEntry, ValueEntry))
 discardSamples time input 
@@ -203,6 +217,7 @@ discardSamples time input
   where
   first = U.head discard
   discard = U.dropWhile (\(_, tuple) -> convertTime tuple < time) input
+{-# INLINE discardSamples #-}
 
 extrapolate :: Int64 -> Float -> Int64 -> Float -> Int64 -> Float
 extrapolate x1 y1 x2 y2 x = k*x' + m
@@ -210,3 +225,4 @@ extrapolate x1 y1 x2 y2 x = k*x' + m
   k = (y1 - y2)/(x1' - x2')
   m = y2 - k*x2'
   [x1', x2', x'] = map realToFrac [x1, x2, x]
+{-# INLINE extrapolate #-}

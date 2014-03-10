@@ -1,4 +1,4 @@
-{-# Language OverloadedStrings #-}
+{-# Language BangPatterns, OverloadedStrings #-}
 
 module Generate where
 
@@ -29,14 +29,14 @@ generateYear pool table modules year system = do
       liftIO . putStrLn $ "Generating power curve (module: " <> show addr <> ")"
       DB.runCas pool $ M.forM_ [firstDay..lastDay] $ \day -> do
         let curve = generatePowerCurve table 5 day sm
-        daily <- liftIO $ applyVoltageNoise 0.0015 gen curve
+        daily <- liftIO $ applyVoltageNoise stdDev gen curve
         let (voltage, current) = U.unzip daily
         write (UTCTime day 0) sm voltage current
 
   where
   interval = 5
   samplesPerDay = 24 * (quot 60 interval)
-  write day (SM _ addr _) voltage current = DB.executeWrite DB.ONE
+  write day (SM addr _ _) voltage current = DB.executeWrite DB.ONE
     (DB.query $ "insert into "
                 <> _tableName simulationTable
                 <> " "
@@ -60,9 +60,9 @@ generateYears firstYear lastYear sys = do
   where
   buildModule gen addr = do
     let grab coeff lower upper = fmap (* coeff) $ uniformR (lower, upper) gen
-    cells <- fmap ([60, 72] !!) $ uniformR (0, 1) gen
-    i_sc  <- grab 1.0e+01 0.8 1.1
-    i_sat <- grab 1.0e-10 1.5 2.5
-    r_ser <- grab 1.0e-02 0.5 1.5
-    r_par <- grab 1.0e+02 1.5 2.5
-    return $ SM addr (cells, i_sat, r_ser, r_par) 0.1
+    !cells <- fmap ([60, 72] !!) $ uniformR (0, 1) gen
+    !i_sc  <- grab 1.0e+01 0.9 1.1
+    !i_sat <- grab 1.0e-10 1.9 2.1
+    !r_ser <- grab 1.0e-02 0.8 1.2
+    !r_par <- grab 1.0e+02 1.8 2.2
+    return $ SM addr (cells, i_sc, i_sat, r_ser, r_par) 0.01
