@@ -50,13 +50,14 @@ generateYear pool table modules year system = do
 generateYears :: Integer -> Integer -> Int -> IO ()
 generateYears firstYear lastYear sys = do
   moduleGen <- create
-  modules <- mapM (buildModule moduleGen) [1..24]
+  modules <- M.forM [1..24] $ buildModule moduleGen
 
   table <- fmap normalizePowerTable $ withFile "logs/work" ReadMode readPowerTable
   pool <- getPool
 
   M.forM_ [firstYear..lastYear] $ \year ->
     generateYear pool table modules year sys
+
   where
   buildModule gen addr = do
     let grab coeff lower upper = fmap (* coeff) $ uniformR (lower, upper) gen
