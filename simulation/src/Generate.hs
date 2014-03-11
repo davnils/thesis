@@ -21,6 +21,9 @@ import System.Random.MWC.Distributions (normal)
 import Reference
 import Storage
 
+-- sample interval (minutes)
+interval = 5
+
 generateYear :: DB.Pool -> ValueTable -> [SolarModule] -> Integer -> SystemID -> IO ()
 generateYear pool table modules year system = do
   putStrLn $ "Generating year: " <> show year <> " with " <> show (PL.length modules) <> " modules"
@@ -34,15 +37,13 @@ generateYear pool table modules year system = do
         write (UTCTime day 0) sm voltage current
 
   where
-  interval = 5
-  samplesPerDay = 24 * (quot 60 interval)
   write day (SM addr _ _) voltage current = DB.executeWrite DB.ONE
     (DB.query $ "insert into "
                 <> _tableName simulationTable
                 <> " "
                 <> tableFieldsStr simulationTable
                 <> " values (?,?,?,?,?)")
-    (system, addr, day, U.toList voltage, U.toList current)
+    (system, addr, day, U.toList current, U.toList voltage)
 
   firstDay  = fromGregorian year 0 1
   lastDay   = fromGregorian year 12 31

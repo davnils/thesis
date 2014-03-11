@@ -51,6 +51,6 @@ outputMatlab :: String -> Result -> IO ()
 outputMatlab file raw = withFile (file <> ".m") WriteMode $ \handle -> do
   hPutStrLn handle $ file <> "_ = ["
   V.mapM_ (\(v, c) -> outputVec handle v >> outputVec handle c) raw
-  hPutStrLn handle "]"
+  hPutStrLn handle "];"
   where
   outputVec h vec = U.mapM_ (hPutStr h . (' ':) . show) vec >> hPutStrLn h ""
