@@ -7,4 +7,4 @@ clear
 cabal clean
 cabal sdist
 scp dist/$FILE dlgh:
-ssh -t dlgh "~/.bashrc; rm -rf $DIR; tar xf $FILE; cd $DIR; cabal clean; cabal install"
+ssh -t dlgh "~/.bashrc; rm -rf $DIR; tar xf $FILE; cd $DIR; cabal clean; cabal install -fllvm"
