@@ -192,8 +192,8 @@ calculateComponents (cells', i_sc', i_sat', r_ser', r_par') irradiance'
   | irradiance <= 0.0 = (0.0, 0.0)
   | otherwise         = (u_opt, current)
   where
-  current             = approxZero 0.001 eval 5                     -- approximate I_load within 1e-3
-  eval i_load         =   i_photo
+  current             = approxZero 0.001 eval 5                     -- approximate I_load within some error bound
+  eval i_load         = i_photo
                         - i_sat*(exp $ q*(r_ser*i_load + u_cell)/(k_b*t) - 1)
                         - (r_ser*i_load + u_cell)/r_par  - i_load
 
@@ -201,9 +201,11 @@ calculateComponents (cells', i_sc', i_sat', r_ser', r_par') irradiance'
   u_cell              = u_opt / cells
   u_opt               = 0.76 * u_oc                                 -- well-known ratio for MPP
   u_oc                = cells * (k_b*t/q) * log (i_photo/i_sat + 1)
+
   k_b                 = 1.38e-23
   q                   = 1.60e-19
   t                   = 273.15 + 25
+  -- TODO: Express t as a function of environmental temperature
 
   irradiance          = c irradiance'
   (cells, i_sc, i_sat, r_ser, r_par)
@@ -213,7 +215,7 @@ calculateComponents (cells', i_sc', i_sat', r_ser', r_par') irradiance'
 discardSamples :: Int64 -> U.Vector (ValueEntry, ValueEntry) -> (ValueEntry, U.Vector (ValueEntry, ValueEntry))
 discardSamples time input 
   | convertTime (fst first) == time = (fst first, discard)
-  | otherwise = (snd first, discard)
+  | otherwise                       = (snd first, discard)
   where
   first = U.head discard
   discard = U.dropWhile (\(_, tuple) -> convertTime tuple < time) input
