@@ -73,5 +73,6 @@ simulationTable = CassandraTable
    ("date",    "timestamp"),
    ("voltage", "list<float>"),
    ("current", "list<float>"),
+   ("temperature", "list<float>"),
    ("primary key", "((system, date), module)")]
    ""

@@ -38,8 +38,8 @@ import System.IO.Unsafe
 import Text.Read (readMaybe)
 
 data Row
- = Row UTCTime Float
- deriving (Eq, Ord, Show)
+  = Row UTCTime Float
+  deriving (Eq, Ord, Show)
 
 type TripleDay = Integer
 type ValueEntry = (Int64, Float)
@@ -48,23 +48,23 @@ type ValueTable = (Day, Day, H.HashMap TripleDay (U.Vector ValueEntry))
 -- parse a single row on the format "2012-11-06 13:53:38	28.178"
 parseRow :: (Functor m, Monad m) => Parser Text m (Maybe Row)
 parseRow = do
-  row <- zoom line $ do
-    time <- parseTimeStamp
-    _ <- parseToken
-    val <- parseDouble
-    return $ liftM2 Row time val
+row <- zoom line $ do
+  time <- parseTimeStamp
+  _ <- parseToken
+  val <- parseDouble
+  return $ liftM2 Row time val
 
-  _ <- drawChar
-  return row
+_ <- drawChar
+return row
 
-  where
-  parseToken = fmap (strip . concat) $ zoom word drawAll
-  parseTimeStamp = do
-    date <- parseToken
-    time <- parseToken
-    return $ parseTime defaultTimeLocale "%F%T" (unpack $ date <> time)
+where
+parseToken = fmap (strip . concat) $ zoom word drawAll
+parseTimeStamp = do
+  date <- parseToken
+  time <- parseToken
+  return $ parseTime defaultTimeLocale "%F%T" (unpack $ date <> time)
 
-  parseDouble = fmap (readMaybe . unpack) parseToken
+parseDouble = fmap (readMaybe . unpack) parseToken
 
 exhaustParser parser producer = do
   (r, producer') <- runStateT parser producer
@@ -138,13 +138,13 @@ type Noise = U.Vector Float
 type SolarParameters = (Int, Double, Double, Double, Double) -- #cells, I_sc, I_sat, R_ser, R_par
 
 data SolarModule
- = SM !ModuleID !SolarParameters !Double
-  
+  = SM !ModuleID !SolarParameters !Double
+
 -- Generate power curve for a single module during a single day.
 -- Input data points are interpolated using a random walk.
 -- Outputs (Voltage, Current) tuples.
-generatePowerCurve :: ValueTable -> SamplingInterval -> Day -> SolarModule -> U.Vector (Float, Float)
-generatePowerCurve (first, _, table) interval inputDay (SM _ params _) = U.unfoldrN steps step iterStart
+generatePowerCurve :: ValueTable -> SamplingInterval -> Day -> SolarModule -> U.Vector Float -> U.Vector (Float, Float, Float)
+generatePowerCurve (first, _, table) interval inputDay (SM _ params _) tempVec = U.unfoldrN steps step iterStart
   where
   day' = toModifiedJulianDay $ fromGregorian yRef mIn dIn
   (yRef, _, _) = toGregorian first
@@ -153,28 +153,40 @@ generatePowerCurve (first, _, table) interval inputDay (SM _ params _) = U.unfol
   steps = fromIntegral $ 1 + quot (convertTime (U.last daily) - convertTime (U.head daily)) timeStep
   timeStep = fromIntegral $ 60 * interval
   timeStep' = fromIntegral timeStep
-  iterStart = (U.zip daily (U.drop 1 daily), fst $ U.head daily, 0.0)
-  daily = (H.!) table day'
+  iterStart = (U.zip daily dailyRest, firstTime, 0.0)
 
-  step (ref, time, prevDay) = Just ((voltage, current), (ref', time + timeStep', today'))
+  ((firstTime, _, _), dailyRest) = (U.head daily, U.drop 1 daily)
+  daily = U.map (\(temp, (time, val)) -> (time, val, temp)) $ U.zip tempVec $ (H.!) table day'
+
+  step (ref, time, prevDay) = Just ((voltage, current, temp), (ref', time + timeStep', today'))
     where
-    (refToday', ref') = discardSamples time ref
-    !(!current, !voltage) = calculateComponents params today'
-    !today' = extrapolate (time - timeStep') prevDay (convertTime refToday') (snd refToday') time
+      (refToday@(_, irr, temp), ref') = discardSamples time ref
+      !(!current, !voltage) = calculateComponents params today' temp
+      !today' = extrapolate (time - timeStep') prevDay (convertTime refToday) irr time
 
-applyVoltageNoise :: Double -> Gen (PrimState IO) -> U.Vector (Float, Float) -> IO (U.Vector (Float, Float))
+applyVoltageNoise :: Double -> Gen (PrimState IO) -> U.Vector (Float, Float, Float) -> IO (U.Vector (Float, Float, Float))
 applyVoltageNoise stdDev gen vec = do
   noise <- U.replicateM (U.length vec) $ normal 1.0 stdDev gen
   return . U.map applyNoise $ U.zip vec noise
   where
-  applyNoise ((voltage, current), noise)
-    | voltage > 0.0 = (voltage', voltage*current / voltage')
-    | otherwise    = (voltage, current)
+  applyNoise ((voltage, current, temperature), noise)
+    | voltage > 0.0 = (voltage', voltage*current / voltage', temperature)
+    | otherwise    = (voltage, current, temperature)
     where
     voltage' = voltage * double2Float noise
 
-convertTime :: Num b => (Int64, a) -> b
-convertTime = fromIntegral . fst
+type ValueEntry' = (Int64, Float, Float)
+discardSamples :: Int64 -> U.Vector (ValueEntry', ValueEntry') -> (ValueEntry', U.Vector (ValueEntry', ValueEntry'))
+discardSamples time input
+  | convertTime (fst first) == time = (fst first, discard)
+  | otherwise                       = (snd first, discard)
+  where
+  first = U.head discard
+  discard = U.dropWhile (\(_, tuple) -> convertTime tuple < time) input
+{-# INLINE discardSamples #-}
+
+convertTime :: Num b => ValueEntry' -> b
+convertTime = fromIntegral . (\(f, _, _) -> f)
 
 approxZero :: (Eq a, Fractional a, Ord a) => a -> (forall s. Mode s => AD s a -> AD s a) -> a -> a
 approxZero delta f = go . findZero f
@@ -187,8 +199,8 @@ approxZero delta f = go . findZero f
 {-# INLINE approxZero #-}
 
 -- Derive voltage and current from panel specification and normalized irradiance
-calculateComponents :: SolarParameters -> Float -> (Float, Float)
-calculateComponents (cells', i_sc', i_sat', r_ser', r_par') irradiance'
+calculateComponents :: SolarParameters -> Float -> Float -> (Float, Float)
+calculateComponents (cells', i_sc', i_sat', r_ser', r_par') irradiance' temperature'
   | irradiance <= 0.0 = (0.0, 0.0)
   | otherwise         = (u_opt, current)
   where
@@ -204,22 +216,13 @@ calculateComponents (cells', i_sc', i_sat', r_ser', r_par') irradiance'
 
   k_b                 = 1.38e-23
   q                   = 1.60e-19
-  t                   = 273.15 + 25
-  -- TODO: Express t as a function of environmental temperature
+  t                   = 273.15 + temperature
 
   irradiance          = c irradiance'
+  temperature         = c temperature'
   (cells, i_sc, i_sat, r_ser, r_par)
                       = (c cells', c i_sc', c i_sat', c r_ser', c r_par')
   c                   = realToFrac
-
-discardSamples :: Int64 -> U.Vector (ValueEntry, ValueEntry) -> (ValueEntry, U.Vector (ValueEntry, ValueEntry))
-discardSamples time input 
-  | convertTime (fst first) == time = (fst first, discard)
-  | otherwise                       = (snd first, discard)
-  where
-  first = U.head discard
-  discard = U.dropWhile (\(_, tuple) -> convertTime tuple < time) input
-{-# INLINE discardSamples #-}
 
 extrapolate :: Int64 -> Float -> Int64 -> Float -> Int64 -> Float
 extrapolate x1 y1 x2 y2 x = k*x' + m

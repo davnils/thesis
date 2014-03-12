@@ -18,7 +18,7 @@ import System.Locale (defaultTimeLocale)
 
 import Storage
 
-type Result = V.Vector (U.Vector Float, U.Vector Float)
+type Result = V.Vector (U.Vector Float, U.Vector Float, U.Vector Float)
 
 retrieveYear :: SystemID -> Int -> Integer -> IO Result
 retrieveYear system modules year = do
@@ -28,10 +28,10 @@ retrieveYear system modules year = do
    days = PL.take 365 $ [(fromGregorian year 1 1)..]
    flatten res = V.fromList $ PL.map conv [0..23]
      where
-     conv addr = (U.concat volt, U.concat curr)
+     conv addr = (U.concat volt, U.concat curr, U.concat temp)
        where
        this = PL.map (\v -> (V.!) v addr) res
-       (volt, curr) = PL.unzip this
+       (volt, curr, temp) = PL.unzip3 this
 
 retrieveDay :: SystemID -> Int -> Day -> IO Result
 retrieveDay system modules day = getPool >>= (\p -> retrieveDay' p system modules day)
@@ -40,17 +40,17 @@ retrieveDay' :: DB.Pool -> SystemID -> Int -> Day -> IO Result
 retrieveDay' pool system modules day = do
   putStrLn $ "Retrieving day: " <> show day
   rows <- DB.runCas pool $ DB.executeRows DB.ALL fetchRows (system, UTCTime day 0, modules)
-  return . V.fromList $ PL.map (\(l, r) -> (U.fromList l, U.fromList r)) rows
+  return . V.fromList $ PL.map (\(l, m, r) -> (U.fromList l, U.fromList m, U.fromList r)) rows
   where
   fetchRows = DB.query $
-    "select voltage,current from "
+    "select voltage,current,temperature from "
     <> _tableName simulationTable
     <> " where system=? and date=? and module <= ?"
 
 outputMatlab :: String -> Result -> IO ()
 outputMatlab file raw = withFile (file <> ".m") WriteMode $ \handle -> do
   hPutStrLn handle $ file <> "_ = ["
-  V.mapM_ (\(v, c) -> outputVec handle v >> outputVec handle c) raw
+  V.mapM_ (\(v, c, t) -> outputVec handle v >> outputVec handle c >> outputVec handle t) raw
   hPutStrLn handle "];"
   where
   outputVec h vec = U.mapM_ (hPutStr h . (' ':) . show) vec >> hPutStrLn h ""

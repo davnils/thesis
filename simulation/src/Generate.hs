@@ -2,6 +2,7 @@
 
 module Generate where
 
+import Control.Applicative ((<$>))
 import qualified Control.Concurrent.Async as C
 import qualified Control.Monad as M
 import Control.Monad.Trans
@@ -27,26 +28,36 @@ interval = 5
 generateYear :: DB.Pool -> ValueTable -> [SolarModule] -> Integer -> SystemID -> IO ()
 generateYear pool table modules year system = do
   putStrLn $ "Generating year: " <> show year <> " with " <> show (PL.length modules) <> " modules"
+  temperatures <- (U.fromList . PL.map read . PL.words) <$> PL.readFile "logs/temperatures"
   M.void $ (`C.mapConcurrently` modules) $ \sm@(SM maxPower addr stdDev) -> do
     withSystemRandom . asGenIO $ \gen -> do
+      -- apply random noise to temperature vector
+      tempNoise <- U.replicateM (U.length temperatures) (normal 1.0 0.01 gen)
+      let temperatures' = U.map (double2Float . uncurry (*)) $ U.zip temperatures tempNoise
+
+      -- generate all days for this module
       liftIO . putStrLn $ "Generating power curve (module: " <> show addr <> ")"
-      DB.runCas pool $ M.forM_ [firstDay..lastDay] $ \day -> do
-        let curve = generatePowerCurve table 5 day sm
+      DB.runCas pool $ M.forM_ (PL.zip [firstDay..lastDay] indices) $ \(day, offset) -> do
+        let tempSlice = U.slice (offset*perDay + 3*perHour -  1) (perDay - 4*perHour) temperatures'
+        let curve = generatePowerCurve table 5 day sm tempSlice
         daily <- liftIO $ applyVoltageNoise stdDev gen curve
-        let (voltage, current) = U.unzip daily
-        write (UTCTime day 0) sm voltage current
+        let (voltage, current, temperature) = U.unzip3 daily
+        write (UTCTime day 0) sm voltage current temperature
 
   where
-  write day (SM addr _ _) voltage current = DB.executeWrite DB.ONE
+  write day (SM addr _ _) voltage current temperature = DB.executeWrite DB.ONE
     (DB.query $ "insert into "
                 <> _tableName simulationTable
                 <> " "
                 <> tableFieldsStr simulationTable
-                <> " values (?,?,?,?,?)")
-    (system, addr, day, U.toList current, U.toList voltage)
+                <> " values (?,?,?,?,?,?)")
+    (system, addr, day, U.toList current, U.toList voltage, U.toList temperature)
 
   firstDay  = fromGregorian year 0 1
   lastDay   = fromGregorian year 12 31
+  perDay    = 24*perHour
+  perHour   = 12
+  indices = PL.concat . PL.repeat . PL.take 365 $ [0..]
 
 generateYears :: Integer -> Integer -> Int -> IO ()
 generateYears firstYear lastYear sys = do
