@@ -1,0 +1,35 @@
+Boostrap method
+===============
+
+(note: matlab implements bias corrected and accelerated by default when using bootci)
+
+Assume a window size of w samples.
+
+Have a reference window of the w previously (classified as non-faulty) samples (one sample every 5 minutes).
+Take a new candidate window of the w latest samples (disjoint from reference).
+It is obvious that a window is needed due to the large changes in differences over the day.
+Which distance function should be applied to the delta_U_{ij} samples?
+
+Evaluate the arithmetic mean <> over these distributions in order to locate singificant differences.
+This is done by taking B bootstrap samples (from each distribution) and evaluating <B_{1,i}> - <B_{2,i}>.
+The resulting values form a distribution which will differ from zero if there is a significant difference.
+Hence the candidate window is classified as either fault or non-fault, for each of the pv inverters.
+
+Some care needs to be taken in order to study if there is bias in the resulting distribution of differences.
+
+--> Try extracting delta_U_{ij} for a single module, bootstrapping, and studying the resulting distribution.
+    Compare this with the distribution formed when an error occurs.
+
+    I.e. need a function calculates all delta_U_{ij} for some given interval.
+    Apply the described method upon two of these windows.
+    Do this in matlab.
+
+    Is it applicable to perform normalization based on measurement spread?
+    Fact: avg(window) becomes larger during the first few hours.
+
+    The coefficient of variation (stddev/mean) behaves reasonably well over the power curve of a day.
+    -> Is this only about measuring the dispersion in windows?
+    -> Perhaps only generate various statistical measures and perform classification?
+    -> What about only considering very singificant differences with >m as faults?
+
+What about small changes in both current and voltage? these would present to a larger extent in the product (power).
