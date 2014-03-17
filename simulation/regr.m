@@ -14,6 +14,13 @@ function diffs=regrSingle(raw, skip, module, measurements, measurementOffset)
 
   diffs = [];
   for i=0:modules-1
-    new = ref - raw(1 + skip, 1 + i * measurements + measurementOffset);
+    % new = abs(ref - raw(1 + skip, 1 + i * measurements + measurementOffset));
+    new = raw(1 + skip, 1 + i * measurements + measurementOffset);
     diffs = [diffs new];
   end
+
+  % NOTE: this doesn't take care of multiple entries (window > 1)
+  others = [diffs(1:module-1) diffs(module+1:length(diffs))];
+
+  diffs = diffs - mean(others);
+  diffs = diffs ./ std(others);
