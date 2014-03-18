@@ -15,7 +15,7 @@ function output=detect(raw, firstM, lastM, measurementOffset, threshold)
 
   for m=firstM:lastM
     valuesM = [];
-    for s=0:199
+    for s=0:240
       curr = regr(raw, s, m, 3, measurementOffset, 1);
       valuesM = [valuesM curr(m)];
     end
@@ -42,5 +42,5 @@ function output=detect(raw, firstM, lastM, measurementOffset, threshold)
 %   -> need to place every day in sequentially numbered files and write a matlab wrapper
 % * investigate the capability of detecting minor faults <- interval? [0.5 0.9]
 %   -> inject faults during 2014 between 09 and 16
-% * conclude whetever this approach is "good enough"
+% * conclude whetever this approach is "good enough": yep!
 % * extend to night->day transitions

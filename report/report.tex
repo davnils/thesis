@@ -41,18 +41,12 @@ These new capabilities provide new possibilities in monitoring of the health of 
 This process, known as fault detection, is an active research area.
 Fault detection aims to detect faulty and degraded solar panels as soon as possible. 
 Degradation occurs naturally in solar panels and it is of interest to quantify the degradation rate over time.
+
+\section{Purpose of this thesis}
 The purpose of this thesis is to study and develop new methods for fault detection in the context of distributed inverter systems.
+%TODO
+\emph{This section will be extended with a detailed description regarding purpose of this thesis}
 
-\section{Intended readers}
-The main target audience interested in this thesis are companies building products in the field of PV power electronics.
-Fault detection in solar panels is an active research area and continually evolves, demonstrating an academic interest as well.
-The main party interested in the results is of course the supervising company, whom are likely to
-integrate a functional solution into their final product.
-While being a fairly specialized thesis, it is comprehensible to anyone with a basic background in statistics.
-Some basic knowledge of physics and electronic circuits is needed is as well in order to fully understand the electrical models.
-
-\clearpage
-\section{Scope of this thesis}
 The most important scope limitation is that systems should only be studied passively, i.e. the available measurements are used to detect faulty panels.  
 Some technical constraints are present as well:
 \begin{itemize}
@@ -75,6 +69,14 @@ This data is accumulated in a central database for further analysis.
 This data has been used in order to verify real-life performance of the classification system, primarily to verify that working systems are not classified as faulty.
 
 Additionally there are other sources that can be used to build realistic simulation models, such as measured solar energy over several years.
+
+\section{Intended readers}
+The main target audience interested in this thesis are companies building products in the field of PV power electronics.
+Fault detection in solar panels is an active research area and continually evolves, demonstrating an academic interest as well.
+The main party interested in the results is of course the supervising company, whom are likely to
+integrate a functional solution into their final product.
+While being a fairly specialized thesis, it is comprehensible to anyone with a basic background in statistics.
+Some basic knowledge of physics and electronic circuits is needed is as well in order to fully understand the electrical models.
 
 \section{Ethical considerations}
 From an ethical perspective this thesis has mainly a positive impact in three different ways.
@@ -157,7 +159,7 @@ I_{photo} - I_{sat}(e^\frac{q(R_{serie}I_{load} + U_{load})}{k_B T} - 1) - \frac
 
 $I_{sat}$ denotes the constant saturation current of the diode,
 $k_B \approx \SI{1.38e-23}{\joule\per\kelvin}$,
-and $q \approx \SI{1.60e-9}{\coulomb}$.
+and $q \approx \SI{1.60e-19}{\coulomb}$.
 
 The free variables are $I_{load}$, $U_{load}$ and $T$, where $T$ is the temperature measured at the p-n junction.
 All parameters of the model, such as $I_{sat}$, may be given in a datasheet or can alternatively be extracted by performing non-linear regression based on samples of the free variables\cite{Walker2001}.
@@ -409,15 +411,54 @@ Annual degradation can then be quantified by comparing months pairwise over a ye
 The study makes an important remark regarding changing conditions during individual days, where all considered panel technologies suffered output losses as the day progressed.
 This is attributed to changing spectral conditions.
 
-%\chapter{Analysis}
-%TBD
 
+\section{Summary}
+%TODO
+Conclusions regarding the applicability of various methods to this specific study.
 
-%\chapter{Results}
-%TBD
+\chapter{Implementation}
+%TODO
+General chapter regarding what has been implemented as part of this report.
 
-%\section{Conclusion}
-%TBD
+\section{Simulation framework}
+%TODO
+Description of how the simulation framework was implemented.
+Discussion on validation of results based on the generated data.
+Description of how statistical assurance was achieved.
+
+\section{Immediate failure detection}
+%TODO
+Discussion on how immediate failure detection was implemented, with some basic code constructs.
+
+\section{Measuring degradation}
+%TODO
+Discussion on how degradation measurements were performed.
+
+\section{Detection of partial shading}
+%TODO
+Discussion on how partial shading detection was implemented.
+
+\chapter{Results}
+%TODO
+Result chapter with results such as classification rate and various graphs.
+
+\section{Immediate failure detection}
+%TODO
+Discussion of how immediate failure detection performs.
+
+\section{Measuring degradation}
+%TODO
+Discussion of how degradation measurement performs.
+
+\section{Detection of partial shading}
+%TODO
+Discussion of how degradation measurement performs.
+
+\chapter{Conclusions}
+%TODO
+General conclusions on the results and how they fit into todays industry and state-of-the-art research.
+Discussion on simulation performance vs real-life PV installations.
+Reflect on each of the three categories separately.
 
 \bibliographystyle{abbrv}
 \bibliography{../ref.bib}

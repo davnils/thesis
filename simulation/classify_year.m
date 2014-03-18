@@ -5,7 +5,7 @@ function result=classifyYear()
     run(file)
     % voltage (0): 0.3
     % current (1): 0.6
-    res = detect(output_', 1, 24, 0, 0.3);
+    res = detect(output_', 1, 24, 1, 0.6);
 
     if any(any(res)) == 1
       i
