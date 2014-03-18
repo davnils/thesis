@@ -74,12 +74,12 @@ generateFaults system year faultCount = withSystemRandom $ \gen -> do
     addr <- grab 1 24
     month <- grab 1 12
     day  <- grab 1 28
-    hour <- toInteger <$> grab 3 (22 :: Int)
+    hour <- toInteger <$> grab 9 (16 :: Int) -- 3 and 22 previously
     minute <- toInteger . (*5) <$> grab 0 (12 :: Int)
     let timestamp = UTCTime (fromGregorian year month day) $ secondsToDiffTime $ hour*3600 + minute*60
 
-    voltDegrad <- grab 0.5 1.0
-    currDegrad <- grab 0.5 1.0
+    voltDegrad <- grab 0.5 0.9
+    currDegrad <- grab 0.5 0.9
     let fault = Instant addr timestamp (currDegrad, voltDegrad)
 
     putStrLn $ "Applying fault: " <> show fault

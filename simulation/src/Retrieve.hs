@@ -2,6 +2,7 @@
 
 module Retrieve where
 
+import Control.Monad (forM_)
 import Data.Monoid ((<>))
 import Data.Time.Calendar
 import Data.Time.Clock
@@ -33,6 +34,13 @@ retrieveYear system modules year = do
        this = PL.map (\v -> (V.!) v addr) res
        (volt, curr, temp) = PL.unzip3 this
 
+retrieveYearSep :: SystemID -> Int -> Integer -> IO ()
+retrieveYearSep system modules year = do
+  pool <- getPool 
+  forM_ (PL.zip [1..] days) $ \(count, day) -> retrieveDay' pool system modules day >>= outputMatlab ("output_" <> show count)
+  where
+   days = PL.take 365 $ [(fromGregorian year 1 1)..]
+
 retrieveDay :: SystemID -> Int -> Day -> IO Result
 retrieveDay system modules day = getPool >>= (\p -> retrieveDay' p system modules day)
 
@@ -49,7 +57,7 @@ retrieveDay' pool system modules day = do
 
 outputMatlab :: String -> Result -> IO ()
 outputMatlab file raw = withFile (file <> ".m") WriteMode $ \handle -> do
-  hPutStrLn handle $ file <> "_ = ["
+  hPutStrLn handle $ (PL.takeWhile (/= '_') file) <> "_ = ["
   V.mapM_ (\(v, c, t) -> outputVec handle v >> outputVec handle c >> outputVec handle t) raw
   hPutStrLn handle "];"
   where

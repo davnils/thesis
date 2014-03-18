@@ -23,6 +23,12 @@ parseCmd ["get_year", systemStr, moduleStr, yearStr] = retrieveYear system modul
   modules   = read moduleStr 
   system    = read systemStr
 
+parseCmd ["get_year_sep", systemStr, moduleStr, yearStr] = retrieveYearSep system modules year
+  where
+  year      = read yearStr
+  modules   = read moduleStr 
+  system    = read systemStr
+
 parseCmd ["get", systemStr, moduleStr, dateStr] = retrieveDay system modules (utctDay date) >>= outputMatlab "output"
   where
   Just date = parseTime defaultTimeLocale "%F" dateStr

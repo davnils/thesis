@@ -21,6 +21,11 @@ Three main approaches:
 Inherent weakness: two strings can be exchanged while remaining invariant.
 This is a problem of labeling which only occurs in the distribution-setting.
 
+Partial progress
+================
+Isolation-based classification performs well (10/10) for both current and voltage failures in [0.5; 0.9].
+This was with parameters 0.6 and 0.3 in classifyYear.m.
+
 Boostrap method
 ===============
 
