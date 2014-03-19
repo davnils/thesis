@@ -25,16 +25,17 @@
 
 \chapter{Introduction}
 This chapter introduces the purpose of this thesis and gives a general outline of photovoltaic systems and failure detection.
-The scope and constraints are described and put into the context of the field of PV power electronics.
+The scope and constraints are described and put into the context of the field of PV (photovoltaic) power electronics, i.e. power generation based on the sun as the energy source.
 
-\section{Overview of fault detection}
-Photovoltaic power generation has gradually become an increasingly larger source of power generation during the last few decades\cite{Zhao2010thesis}.
-This trend has been matched with research into more efficient solar panels, with the current record being an efficiency of $44.7\%$\cite{Fraunhofer2013}.
+\section{Photovoltaic power generation}
+Power generation based on photovoltaic sources has gradually become an increasingly larger source of power generation during the last few decades~\cite{Zhao2010thesis}.
+This trend has been matched with research into more efficient solar panels.
+Efficiency is measured as the ratio of incoming sun energy to the maximum attainable output power, with the current record being an efficiency of $44.7\%$~\cite{Fraunhofer2013}.
 In addition to research into solar panels there is also an established interest in the surrounding equipment.
 
 Part of these systems are power inverters converting DC energy from the solar panels to the AC grid output.
 The efficiency concerns of solar panels naturally extend throughout the system, since any losses will affect the final efficiency of the complete system.
-Recently the area of PV inverters has progressed to distributed systems of inverters where a small inverter module is connected to every panel\cite{Roman2006}.
+Recently the area of PV inverters has progressed to distributed systems of inverters where a small inverter module is connected to every panel~\cite{Roman2006}.
 In addition to increased efficiency this also allows individual measurements of solar panels.
 
 These new capabilities provide new possibilities in monitoring of the health of solar panels.
@@ -45,7 +46,7 @@ Degradation occurs naturally in solar panels and it is of interest to quantify t
 \section{Purpose of this thesis}
 The purpose of this thesis is to study and develop new methods for fault detection in the context of distributed inverter systems.
 %TODO
-\emph{This section will be extended with a detailed description regarding purpose of this thesis}
+\emph{This section will be extended with a detailed description regarding what this thesis attempts to answer}
 
 The most important scope limitation is that systems should only be studied passively, i.e. the available measurements are used to detect faulty panels.  
 Some technical constraints are present as well:
@@ -64,7 +65,7 @@ The type of solar panels constrains the possible output power range and defines 
 Due to time constraints, the simulation of solar panels has been largely based on existing data streams.
 These are used as a basis of generating approximate individual panel curves, limiting the amount of effort required.
 
-The supervising provide data feeds providing real time measurements of several PV installations in Sweden.
+The supervising company provides data feeds providing real time measurements of several PV installations in Sweden.
 This data is accumulated in a central database for further analysis.
 This data has been used in order to verify real-life performance of the classification system, primarily to verify that working systems are not classified as faulty.
 
@@ -72,23 +73,23 @@ Additionally there are other sources that can be used to build realistic simulat
 
 \section{Intended readers}
 The main target audience interested in this thesis are companies building products in the field of PV power electronics.
-Fault detection in solar panels is an active research area and continually evolves, demonstrating an academic interest as well.
+Fault detection in solar panels is an active research area and evolves continually, demonstrating an academic interest as well.
 The main party interested in the results is of course the supervising company, whom are likely to
 integrate a functional solution into their final product.
 While being a fairly specialized thesis, it is comprehensible to anyone with a basic background in statistics.
-Some basic knowledge of physics and electronic circuits is needed is as well in order to fully understand the electrical models.
+Some basic knowledge of physics and electronic circuits is needed as well in order to fully understand the electrical models.
 
-\section{Ethical considerations}
-From an ethical perspective this thesis has mainly a positive impact in three different ways.
+\section{Sustainability considerations}
+From a societal perspective this thesis has mainly a positive impact in three different ways.
 
 The first main improvement is increased efficiency due to faulty solar panels being replaced sooner.
 This improvement has a direct benefit in total produced power.
 Studies have shown there is a significant power loss due to faults in solar panels.
-For example a study conducted in Britain concluded losses upwards $18.9\%$ during the first year of operation\cite{Firth2010}.
+For example a study conducted in Britain concluded losses upwards $18.9\%$ during the first year of operation~\cite{Firth2010}.
 Even though such losses would not be completely eliminated, it is reasonable to conclude that more efficient and reliable detection routines results in faster replacement of faulty panels.
 
 Secondly, early detection of faulty panels results in fewer faulty panels being present in installations.
-This implies a reduction in risk of fire hazards\cite{Zhao2010night} which may affect both personnel and installed equipment.
+This implies a reduction in risk of fire hazards~\cite{Zhao2010night} which may affect both personnel and installed equipment.
 
 Thirdly, there is a reduction in labor required for the equivalent amount of monitoring.
 The final product should send alerts upon recognizing faulty panels, bypassing any manual supervision of the systems.
@@ -103,30 +104,26 @@ hence this chapter can be skipped given a sufficient existing background.
 
 \section{Theory of the solar cell}
 Solar cell technology can be broadly described as equipment converting incoming photons (typically sunlight) to electric energy.
-The solar cells of interest in this study are mono- and poly-crystalline Silicon, technologies that currently have a large market share\cite{Zhao2010thesis}.
+The solar cells of interest in this study are mono- and poly-crystalline Silicon, technologies that currently have a large market share~\cite{Zhao2010thesis}.
 
 Both of these share the property of being being constructed around a single pn-junction, i.e. the connection between two differently doped Silicon areas.
-The incoming photons may be absorbed by the Silicon in which case a electron-hole pair is created\cite{Zhao2010thesis}, since the electron is pushed to an outer layer by the absorbed energy.
+The incoming photons may be absorbed by the Silicon in which case a electron-hole pair is created~\cite{Zhao2010thesis}, since the electron is pushed to an outer layer by the absorbed energy.
 Connecting an electric load, such as a heating element, to the terminals of the solar cell will then induce a DC current.
-Overall this results in an efficiency of $13-18\%$ for single-junction Silicon technology\cite{Zhao2010thesis}.
+Overall this results in an efficiency of $13-18\%$ for single-junction Silicon technology~\cite{Zhao2010thesis}.
 
 The solar cell can by analyzed by building an equivalent electrical circuit from well-defined components.
-A broadly used model is the one-diode model\cite{Walker2001} as shown in figure \ref{fig:solar-cell-equiv}.
+A broadly used model is the one-diode model~\cite{Walker2001} as shown in figure \ref{fig:solar-cell-equiv}.
 It is based on modelling the solar cell as a current source connected in parallel with a diode.
 In addition there are inherent losses due to imperfect manufacturing.
 These are modelled as a series and a parallel resistance.
 The resulting current $I_{load}$ flows across the terminals through a load with potential difference $U_{load}$.
 $I_{photo}$ corresponds to the amount of current generated by incoming photons which is proportional to the irradiance and area of the solar cell.
 
+%TODO: Need to add figure caption on the format "Figure 1. Equivalent circuit.."
 \begin{figure}[!ht]
 \centering
 \begin{subfigure}{0.4\textwidth}
   \includegraphics[width=\linewidth]{solar-cell-equiv.png}
-  \caption[Equivalent circuit of a solar cell]{
-    Equivalent circuit of a solar cell based on a current source and diode,
-    with losses represented by a series and a parallel resistance.
-  }
-  \label{fig:solar-cell-equiv}
 \end{subfigure}
 ~
 \begin{subfigure}{0.4\textwidth}
@@ -140,14 +137,21 @@ $I_{photo}$ corresponds to the amount of current generated by incoming photons 
   $R_{par}$ & parallel loss resistance \\ \hline
   $R_{serie}$ & series loss resistance \\ \hline
   \end{tabular}
-  \caption[solar-cell-variables]{Variables of the one-diode model.}
-  \label{fig:one-diode-model-vars}
 \end{subfigure}
+  \caption[Equivalent circuit of a solar cell]{
+    \emph{
+    Equivalent circuit of a solar cell based on a current source and diode,
+    with losses represented by a series and a parallel resistance.
+    The table describes all variables of the one-diode model.
+    }
+  }
+  \label{fig:solar-cell-equiv}
 \end{figure}
 
+\clearpage
 The model can be formalized in order to solve for the resulting current and voltage, given the parameters of a solar cell.
 Summing up all the currents it holds that $I_{photo} = I_{diode} + I_{par} + I_{load}$.
-Using the well known Ohm's law followed by Schokley's diode equation\cite{Walker2001}, the following holds:
+Using the well known Ohm's law followed by Schokley's diode equation~\cite{Walker2001}, the following holds:
 
 \begin{multline}
 \label{eq:eq-circuit}
@@ -162,7 +166,7 @@ $k_B \approx \SI{1.38e-23}{\joule\per\kelvin}$,
 and $q \approx \SI{1.60e-19}{\coulomb}$.
 
 The free variables are $I_{load}$, $U_{load}$ and $T$, where $T$ is the temperature measured at the p-n junction.
-All parameters of the model, such as $I_{sat}$, may be given in a datasheet or can alternatively be extracted by performing non-linear regression based on samples of the free variables\cite{Walker2001}.
+All parameters of the model, such as $I_{sat}$, may be given in a datasheet or can alternatively be extracted by performing non-linear regression based on samples of the free variables~\cite{Walker2001}.
 
 There are several relevant aspects in understanding this equivalent model when performing analysis of power generated from solar panels.
 Firstly the output current is proportional to the incoming irradiance, which directly affects $I_{photo}$.
@@ -182,7 +186,7 @@ Finally, it is important to realise that different solar panels have different p
 This implies that inhomogeneous systems offer challenges when comparing produced power output, for example in the case of fault detection.
 
 \section{Systems of solar panels}
-The solar cells described previously typically generate an output voltage of at most a few volts\cite{Zhao2010thesis}.
+The solar cells described previously typically generate an output voltage of at most a few volts~\cite{Zhao2010thesis}.
 A solar module connects several solar cells and places them into a rigid enclosure.
 This module can then be mounted as part of a larger system.
 Figure \ref{fig:solar-module-generic} shows a 54-cell module with the output DC terminals visible on the backside.
@@ -198,7 +202,7 @@ The resulting I-V curve of the module has an increased width and every point is 
 There is however also some extra components involved in the module circuitry.
 The panel is divided into y substrings of which each has a diode connected in parallel.
 During normal operation the diodes will not carry any current.
-If some cell is reduced in performance, for example by having an unusually high series resistance, this will result in the corresponding diode conducting the current, effectively bypassing that specific substring\cite{Roman2006}.
+If some cell is reduced in performance, for example by having an unusually high series resistance, this will result in the corresponding diode conducting the current, effectively bypassing that specific substring~\cite{Roman2006}.
 This is relevant since the I-V curve will reflect these properties and should be analyzed while keeping these effects in mind.
 
 \section{The role of PV inverters}
@@ -208,7 +212,7 @@ It is however not suitable for generation on the electric grid which uses AC pow
 This translation is done using a power inverter, also known as PV inverter.
 There are different topologies applicable, i.e. different arrangements of both solar panels and PV inverters.
 Traditionally a common configuration has been to use long strings of modules connected in series with a single big inverter at the end of the string.
-This approach is however constrained due to individual modules having an unproportional influence on the total power yield of the string \cite{Roman2006}.
+This approach is however constrained due to individual modules having an unproportional influence on the total power yield of the string ~\cite{Roman2006}.
 
 \image{optistring-inverter.jpg}{optistring-inverter}{Optistring PV inverter}{
   The distributed Optistring PV inverter with DC input and AC output.
@@ -223,10 +227,10 @@ This is highly relevant since studies in fault detection typically consider a sp
 A PV inverter should transform the power in the most efficient way and more specifically ensure that the panel is being applied to an optimal load.
 This corresponds to finding the point on the I-V curve where $I_{load} \cdot U_{load}$ is maximal.
 The maximum point is known as MPP and is typically found using some kind of search method along the I-V curve.
-Examples of this includes Pertube and Observe and Incremental Conductance\cite{Roman2006}.
-These are relevant to this study since local searches may not be well-behaved during panel faults\cite{Roman2006}.
+Examples of this includes Pertube and Observe and Incremental Conductance~\cite{Roman2006}.
+These are relevant to this study since local searches may not be well-behaved during panel faults~\cite{Roman2006}.
 This is due to the existence of multiple local maxima on the I-V curve, resulting in the possibility of considering a local optima as a global maxima.
-Previous studies have also found that MPP tracking, known as MPPT, might prevent faults from being observed during night-to-day transitions\cite{Zhao2010night}.
+Previous studies have also found that MPP tracking, known as MPPT, might prevent faults from being observed during night-to-day transitions~\cite{Zhao2010night}.
 
 A relevant term applicable to measuring the efficiency of solar cells is \emph{fill factor} which is defined as the ratio between the power at $I_{MPP} \cdot U_{MPP}$ and $I_{max} \cdot U_{max}$.
 The maximum reference values are defined as $I_{max}$ being the current measured in closed circuit and $U_{max}$ being the voltage measured without any load connected.
@@ -242,12 +246,13 @@ Another interesting aspect of these graphs is the significant amount of noise pr
 \begin{figure}[here]
 \centering
 \subimage{january-power-curve.png}{january-power-curve}{TBD}{
-  Power curve (in Watt) captured from a 16-module installation based in Stockholm, Sweden, captured in the month of January 2014.
+   Power curve captured during a day in January 2014.
 }{0.48}
 ~
 \subimage{october-power-curve.png}{october-power-curve}{TBD}{
-  Same system as in figure \ref{fig:january-power-curve} captured in October 2013.
+  Power curve captured during in a day in October 2013. Note the use of a different scale on the Y-axis.
 }{0.48}
+\caption[Power curves captured from an installation]{\emph{Power curves (in Watt) captured from a 16-module installation based in Stockholm, Sweden.}}
 \end{figure}
 
 After sunset and during periods of negligible irradiance the system is completely shutdown in order to increase efficiency.
@@ -264,7 +269,7 @@ This chapter gives an overview of possible failure conditions and describes the 
 \section{Issues in photovoltaic systems}
 There are a lot of different issues present in PV systems \cite{Baltus1997,King2002,Petrone2008}, demonstrating an interest in detecting faults to the greatest extent as early as possible.
 
-A study conducted in Spain\cite{Munoz2011} discusses the following failures in solar modules:
+A study conducted in Spain~\cite{Munoz2011} discusses the following failures in solar modules:
 \begin{itemize}
 \item Yellowing and browning
 \item Delamination
@@ -274,7 +279,7 @@ A study conducted in Spain\cite{Munoz2011} discusses the following failures in s
 \item Hot spots caused by the panel acting as a load
 \end{itemize}
 
-Another study\cite{Forman1982} identified the following conditions:
+Another study~\cite{Forman1982} identified the following conditions:
 \begin{itemize}
 \item Edge-seal delamination
 \item Newly cracked cells
@@ -288,10 +293,10 @@ It has also been found that connections and the weldings connectors can be degra
 In conclusion it can be said that there is a wide range of failure conditions.
 This breadth motivates the use of classes of failures, based on the electrical properties induced during a fault.
 \cite{Zhao2010thesis} and the papers \cite{Zhao2012tree,Zhao2013graph,Zhao2013outlier} use a categorization into ground faults, line-line faults, and open-circuit faults.
-Ground faults are defined as a conductor accidentally having contact with the system ground\cite{Zhao2010thesis}.
-Line-line faults occur when two different potentials conduct by accident\cite{Zhao2010thesis}.
-Open-circuit faults occur when a conductor is accidentally removed from a closed circuit\cite{Zhao2010thesis}.
-\cite{Zhao2010thesis} concludes that ground and line-line faults typically exhibit a significant drop in output voltage,
+Ground faults are defined as a conductor accidentally having contact with the system ground~\cite{Zhao2010thesis}.
+Line-line faults occur when two different potentials conduct by accident~\cite{Zhao2010thesis}.
+Open-circuit faults occur when a conductor is accidentally removed from a closed circuit~\cite{Zhao2010thesis}.
+The same study concludes that ground and line-line faults typically exhibit a significant drop in output voltage,
 but also states that open-circuit faults and degradation causes significant decrease in current.
 
 The same thesis found that protection devices commonly present in PV installations known as over-current protection devices (OCPD) and ground protection (GPD) are not sufficient.
@@ -305,12 +310,12 @@ A study \cite{Munoz2011} found that early degradation occurs due to wide variety
 The paper ties the measured degradation rates to a specific allowance, based on guarantees from the manufacturer.
 It discusses a typical guarantee of $90\%$ over 10-15 years and $80\%$ over 20-25 years in preserved nominal power.
 
-\cite{Meyer2004} notes that degradation in the anti-reflective coating results in a brightening in the color of the cell.
+Meyer and Dyk~\cite{Meyer2004} note that degradation in the anti-reflective coating results in a brightening in the color of the cell.
 It can also be detected in the module's maximum attainable voltage and current.
 The paper discusses solar cell degradation as three different factors being involved in relation to the one-diode model figure \ref{fig:solar-cell-equiv}.
-The first is an increase in series resistance, the second is a decrease in the parallel resistance (which implies a larger loss current), and the third being detoriation of the antireflection coating affecting the photogenerated current.
+The first is an increase in series resistance, the second is a decrease in the parallel resistance (which implies a larger loss current), and the third being deterioration of the antireflection coating affecting the photogenerated current.
 
-Concrete percentual figures of degradation have also been studied\cite{Quintana2002}, which cites a degradation rate of about $0.7\%$ per year for multi-crystalline modules.
+Concrete percentual figures of degradation have also been studied~\cite{Quintana2002}, which cites a degradation rate of about $0.7\%$ per year for multi-crystalline modules.
 There is also a note on that the system may continue to operate in degraded conditions without causing an intermediate failure.
 The paper also describes a condition known as \emph{light induced degradation} (LID) which is a module degradation
 that occurs during the first few hours of sunlight exposure.
@@ -356,8 +361,8 @@ In addition it is not applicable to passive studies of systems since they can be
 
 \cite{Vergura2008,Vergura2009} consider several identical PV string and compares the outputs in order to classify significant deviations.
 This is done by checking if certain statistical assumptions can be made, formally that the power differences are independently normally distributed with identical variance.
-If this is the case a method known as analysis of variance (ANOVA) can be applied in order to build confidence interval for the power output of each PV string.
-Otherwise the Kurskal-Wallis test is applied in order to build the corresponding intervals.
+If this is the case a method known as analysis of variance (ANOVA)~\cite{Vergura2009} can be applied in order to build confidence interval for the power output of each PV string.
+Otherwise the Kurskal-Wallis test~\cite{Vergura2009} is applied in order to build the corresponding intervals.
 The resulting confidence intervals can be studied for significant deviations which would imply defect solar modules.
 While not being directly applicable to this study, the papers remain relevant due to the basic assumption of only having access to power measurements.
 
@@ -369,7 +374,7 @@ Based on the assumptions made, the paper can consider all PV string currents as 
 This simplification is however not directly applicable to this report.
 
 In the case of given knowledge surrounding faults it is possible to apply supervised learning, e.g. \cite{Zhao2012tree},
-where a labelled dataset is available of measurements classified manually.
+where a labelled dataset is available containing measurements classified manually.
 This dataset can for example be generated by measuring voltage and current of solar modules while injecting faults.
 The paper discusses a decision tree model that takes the available measurements and locates the most probable classification based on the dataset.
 Classification performance is concluded to be very good but real-life applications are limited due to the dataset being heavily tied to a specific PV installation.
@@ -379,27 +384,27 @@ This approach results in significant cost reductions, due to the low amount of l
 The classification performance is up to $99\%$ for certain classes of errors.
 
 Finally, \cite{Kang2012} takes the approach of using a Kalman filter in order to predict power output.
-The Kalman filter takes a set of noisy measurements and the underlying physical model, and produces the most probable output value in an iterative process.
+The Kalman filter~\cite{Kang2012} takes a set of noisy measurements and the underlying physical model, and produces the most probable output value in an iterative process.
 This is used in order to locate faults based on measurements of voltage, current, and panel temperature.
 Notably this permits classification without access to irradiance data.
 The requirement of access to to panel temperature is however limiting in the context of this report.
 
-There has also been research into locating the faulty panel within a string\cite{Lin2012}.
+There has also been research into locating the faulty panel within a string~\cite{Lin2012}.
 These results can be considered less applicable when individual solar module measurements are available.
 
 \section{Measuring degradation}
 Panel degradation needs to be measured in order to quantify the losses due to possible faulty panels that may void any established guarantee conditions.
-Traditionally several different manual techniques have been utilized\cite{Munoz2011} such as IR-based camera snapshots, exposure to strong light, and I–V curve analysis string by string.
+Traditionally several different manual techniques have been utilized~\cite{Munoz2011} such as IR-based camera snapshots, exposure to strong light, and I–V curve analysis string by string.
 
-The PVSAT project\cite{Stettler2005} considers faults based on their long-term effects.
+The PVSAT project~\cite{Stettler2005} considers faults based on their long-term effects.
 Losses are classified as panel degradation after a long period of time has passed with an energy reduction in the range of $0-20\%$.
 
-A recent master's thesis\cite{Zhao2010thesis} simulates degradation in order to test the implemented methods.
+A recent master's thesis~\cite{Zhao2010thesis} simulates degradation in order to test the implemented methods.
 In this model a variable series resistance is introduced in the solar module.
 The resistance is then gradually increased over time in order to provide a significant decrease.
 This loss corresponds to $R_{serie}$ in the one-diode model (figure \ref{fig:solar-cell-equiv}).
 
-One approach to detecting degradation is measuring the fill-factor over time\cite{Raina2013}.
+One approach to detecting degradation is measuring the fill-factor over time~\cite{Raina2013}.
 The fill factor is calculated by approximating the maximum attainable current and voltage through parameter estimation.
 The paper study is however constrained to installations with measurements of irradiance and temperature, and hence not applicable to this report.
 
@@ -410,7 +415,6 @@ These values are then averaged on a monthly basis using a least squares method.
 Annual degradation can then be quantified by comparing months pairwise over a year.
 The study makes an important remark regarding changing conditions during individual days, where all considered panel technologies suffered output losses as the day progressed.
 This is attributed to changing spectral conditions.
-
 
 \section{Summary}
 %TODO
