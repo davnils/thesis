@@ -10,7 +10,7 @@
 
 % outputs a column vector for every module, indicating detected failures with '1'
 
-function output=detect(raw, firstM, lastM, measurementOffset, threshold)
+function result=detect(raw, firstM, lastM, measurementOffset, threshold, prevWindows)
   output = [];
 
   for m=firstM:lastM
@@ -36,6 +36,8 @@ function output=detect(raw, firstM, lastM, measurementOffset, threshold)
 
     output = [output outputM'];
   end
+
+  result = [output blargh];
 
 %TODO
 % * verify that non-faulty days are not classified as faulty, might need tuning during shadowing
