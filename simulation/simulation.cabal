@@ -24,7 +24,7 @@ executable sim-admin
     old-locale, 
     cassandra-cql, 
     mtl, 
-    vector, 
+    vector >= 0.10.9.1,
     unordered-containers, 
     network ==2.4.*
   hs-source-dirs:      src
@@ -48,7 +48,7 @@ executable sim-driver
     old-locale, 
     cassandra-cql, 
     mtl, 
-    vector, 
+    vector >= 0.10.9.1,
     mwc-random, 
     primitive, 
     unordered-containers, 
