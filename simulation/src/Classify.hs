@@ -111,20 +111,32 @@ checkDayBoth day windows = (faults, windows')
   smoothedVolt = smooth fst
   smoothedCurr = smooth snd
 
-  smooth f       = V.map applyMovingAverage $ V.map (processPanel f) (V.enumFromTo 1 numPanels)
+  smooth f       = {- V.map applyMovingAverage $ -} V.map (processPanel f) (V.enumFromTo 1 numPanels)
   processPanel f = extractScaledModule (V.map f day')
 
 debug action val = unsafePerformIO $ action >> return val
 
+type SmoothWindow = ([Float], [Float])
+
+mean :: U.Vector Float -> Float
+mean vec = U.sum vec / (realToFrac $ U.length vec)
+
 -- | Returns with ([], Nothing) if no suitable window is found nor provided
 checkDay :: Series -> SystemSSerie -> Int -> Maybe Window -> Float -> ([FaultDescription], Maybe Window)
-checkDay power smoothed len window threshold = flip runState window . fmap PL.concat . forM [0.. len-1] $ \idx -> do
+checkDay power scaled len window threshold = flip runState window . fmap PL.concat . forM [0.. len-1] $ \idx -> do
   window <- get
 
+  -- perhaps do splitAt and take?
+  let clampedAfterLen  = min (U.length scaled - idx) 16
+  let after            = U.slice idx clampedLen scaled
+
+  let clampedBeforePos = max (idx - 16) 0
+  let before           = U.slice clampedBeforePos (idx - clampedBeforePos) scaled
+ 
   -- update window if there is some power available
-  let window' = toList $ V.map (! idx) smoothed
+  -- let window' = toList $ V.map (! idx) smoothed
   let enoughPower = power ! idx >= powerLimit
-  when enoughPower $ put (Just $ fromList window')
+  -- when enoughPower $ put (Just $ fromList window')
 
   -- classify the current window if there is some power available
   case (enoughPower, window) of
@@ -133,6 +145,7 @@ checkDay power smoothed len window threshold = flip runState window . fmap PL.c
           checkFault (addr, True) = Just (addr, idx)
           checkFault (_, False)   = Nothing
           faults = mapMaybe checkFault $ PL.zip [1..] indicators
+      put (Just $ fromList window'')
       return faults
     _                    -> return []
 
