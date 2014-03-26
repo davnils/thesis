@@ -20,6 +20,7 @@ import Prelude
 import qualified Prelude as PL
 import System.Environment (getArgs)
 import System.IO (hPutStr, hPutStrLn, IOMode(..), withFile)
+import System.IO.Unsafe (unsafePerformIO)
 import System.Locale (defaultTimeLocale)
 
 import Reference
@@ -29,11 +30,6 @@ type Series = U.Vector Float                 -- ^ Vector of measurements.
 type Window = U.Vector Float                 -- ^ Indexed by panel, single measurement.
 type SystemSerie = V.Vector (Series, Series) -- ^ Indexed by panel, vectors for voltage and current.
 type SystemSSerie = V.Vector Series          -- ^ Indexed by panel, vectors for a single measurement.
-
--- TODO LIST
--- (1) verify extractScaledModule
--- (2) study other routines
--- (3) extend code with classification rates
 
 -- | Limit in Watt for all samples surveyed
 powerLimit = 1.0
@@ -63,7 +59,7 @@ applyMovingAverage vec = U.generate (U.length vec) average
   where
   average idx = (1 / windowSize') * realToFrac (U.sum $ U.slice idx windowSize padded)
 
-  padded      = U.replicate windowSize 0.0 <> vec
+  padded      = U.replicate (windowSize - 1) 0.0 <> vec
   windowSize  = 16
   windowSize' = realToFrac windowSize
 
@@ -118,21 +114,27 @@ checkDayBoth day windows = (faults, windows')
   smooth f       = V.map applyMovingAverage $ V.map (processPanel f) (V.enumFromTo 1 numPanels)
   processPanel f = extractScaledModule (V.map f day')
 
+debug action val = unsafePerformIO $ action >> return val
+
 -- | Returns with ([], Nothing) if no suitable window is found nor provided
 checkDay :: Series -> SystemSSerie -> Int -> Maybe Window -> Float -> ([FaultDescription], Maybe Window)
 checkDay power smoothed len window threshold = flip runState window . fmap PL.concat . forM [0.. len-1] $ \idx -> do
   window <- get
-  let window' = toList $ V.map (! idx) smoothed
-  when (power ! idx >= powerLimit) $ put (Just $ fromList window')
 
-  case window of
-    Nothing      -> return []
-    Just window_ -> do
+  -- update window if there is some power available
+  let window' = toList $ V.map (! idx) smoothed
+  let enoughPower = power ! idx >= powerLimit
+  when enoughPower $ put (Just $ fromList window')
+
+  -- classify the current window if there is some power available
+  case (enoughPower, window) of
+    (True, Just window_) -> do
       let indicators = map (\(val, prev) -> abs (val - prev) >= threshold) $ PL.zip window' (toList window_)
           checkFault (addr, True) = Just (addr, idx)
           checkFault (_, False)   = Nothing
           faults = mapMaybe checkFault $ PL.zip [1..] indicators
       return faults
+    _                    -> return []
 
 -- Wrapper iterating over all days and returns date/module of fault
 checkTimePeriod :: Integer -> Maybe Int -> IO [LongFaultDescription (Day, Int)]
@@ -141,12 +143,12 @@ checkTimePeriod year daysCount = do
 
   let processDay (prevFaults, windows) day = do
       putStrLn $ "Checking day: " <> show day
-      print ">>>>>>>>>>> Windows before"
+      print ">>>>>>>>>>> First windows ever"
       print windows
       daily <- retrieveDayValues pool system modules day
-      let (newFaults, windows') = checkDayBoth daily windows
+      let (newFaults, windows') = checkDayBoth daily Nothing -- windows
           taggedNew = map (\(kind, addr, idx) -> (kind, addr, (day, idx))) newFaults
-      print ">>>>>>>>>>> Windows after"
+      print ">>>>>>>>>>> Last windows ever"
       print windows'
       return (taggedNew <> prevFaults, windows')
 
