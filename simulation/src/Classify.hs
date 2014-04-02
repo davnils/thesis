@@ -5,7 +5,7 @@ module Classify where
 import Control.Applicative ((<$>))
 import Control.Arrow(first, (***))
 import Control.Monad (forM_, forM, foldM, liftM2, when)
-import Control.Monad.State (get, put, runState)
+import Control.Monad.State (get, modify, put, runState)
 import Data.Maybe (mapMaybe, fromMaybe)
 import Data.Monoid ((<>))
 import Data.Time.Calendar
@@ -14,6 +14,7 @@ import Data.Time.Format (parseTime)
 import Data.Text hiding (filter, length, map, take, break, foldl')
 import qualified Data.Vector as V
 import qualified Data.Vector.Unboxed as U
+import qualified Data.Vector.Unboxed.Mutable as UM
 import qualified Database.Cassandra.CQL as DB
 import Data.Vector.Generic (convert, fromList, toList, (!), (!?))
 import Prelude
@@ -34,6 +35,9 @@ type SystemSSerie = V.Vector Series          -- ^ Indexed by panel, vectors for 
 -- | Limit in Watt for all samples surveyed
 powerLimit = 1.0
 
+-- | Window size used by sliding average
+windowSize  = 16
+
 -- | Thresholds in consecutive voltage and current samples that imply faults
 voltageThreshold, currentThreshold :: Float
 (voltageThreshold, currentThreshold) = (0.3, 0.6)
@@ -41,27 +45,28 @@ voltageThreshold, currentThreshold :: Float
 -- for a given module, define a function which builds the day-vector containing scaled measurements
 extractScaledModule :: SystemSSerie -> ModuleID -> Series
 extractScaledModule daily panel = U.generate numSamples buildSample
- where
- numSamples = U.length $ daily ! 0
+  where
+  numSamples = U.length $ daily ! 0
 
- buildSample idx = normalize $ getSample (panel - 1) - mean
-   where
-   getSample addr = daily ! addr ! idx
-   mean           = U.sum otherSamples / otherLength
-   normalize s    = if std /= 0.0 then s / std else s
-   std            = sqrt $ (1/otherLength) * U.sum (U.map (\s -> (s - mean)^2) otherSamples)
-   otherLength    = realToFrac $ U.length otherSamples
-   otherSamples   = U.map getSample $ fromList $ [0..panel-2] <> [panel..V.length daily-1]
+  buildSample idx = normalize $ getSample (panel - 1) - mean
+    where
+    getSample addr = daily ! addr ! idx
+    mean           = U.sum otherSamples / otherLength
+    normalize s    = if std /= 0.0 then s / std else s
+    std            = sqrt $ (1/otherLength) * U.sum (U.map (\s -> (s - mean)^2) otherSamples)
+    otherLength    = realToFrac $ U.length otherSamples
+    otherSamples   = U.map getSample $ fromList $ [0..panel-2] <> [panel..V.length daily-1]
+
+average vec = (1 / (realToFrac windowSize)) * U.sum vec
 
 -- Function which generates a smoothed data series from samples
-applyMovingAverage :: Series -> Series
+{-applyMovingAverage :: Series -> Series
 applyMovingAverage vec = U.generate (U.length vec) average
   where
   average idx = (1 / windowSize') * realToFrac (U.sum $ U.slice idx windowSize padded)
 
   padded      = U.replicate (windowSize - 1) 0.0 <> vec
-  windowSize  = 16
-  windowSize' = realToFrac windowSize
+  windowSize' = realToFrac windowSize-}
 
 twice f = (***) f f
 
@@ -111,43 +116,55 @@ checkDayBoth day windows = (faults, windows')
   smoothedVolt = smooth fst
   smoothedCurr = smooth snd
 
-  smooth f       = {- V.map applyMovingAverage $ -} V.map (processPanel f) (V.enumFromTo 1 numPanels)
+  smooth f       = V.map (processPanel f) (V.enumFromTo 1 numPanels)
   processPanel f = extractScaledModule (V.map f day')
-
-debug action val = unsafePerformIO $ action >> return val
-
-type SmoothWindow = ([Float], [Float])
 
 mean :: U.Vector Float -> Float
 mean vec = U.sum vec / (realToFrac $ U.length vec)
 
+-- this won't work since power isn't defined over an isolated vector
+-- i.e. the predicate needs to have access to the corresponding power vector
+consec :: U.Unbox a => (Int -> Bool) -> V.Vector (U.Vector a) -> [V.Vector (U.Vector a)]
+consec pred vec = go $ U.enumFromN 0 (U.length $ vec ! 0)
+  where
+  go indices
+    | U.null indices || U.null this = []
+    | otherwise                     = V.map (U.slice idx (U.length this)) vec : go rest
+    where
+    idx          = this ! 0
+    (this, rest) = U.span pred ff
+    (_, ff)      = U.break pred indices
+
 -- | Returns with ([], Nothing) if no suitable window is found nor provided
 checkDay :: Series -> SystemSSerie -> Int -> Maybe Window -> Float -> ([FaultDescription], Maybe Window)
-checkDay power scaled len window threshold = flip runState window . fmap PL.concat . forM [0.. len-1] $ \idx -> do
-  window <- get
+checkDay power samples len window threshold = flip runState window $ do
+  get >>= \w -> when (w == Nothing) initReference
 
-  -- perhaps do splitAt and take?
-  let clampedAfterLen  = min (U.length scaled - idx) 16
-  let after            = U.slice idx clampedLen scaled
+  -- process each segment
+  fmap PL.concat . forM grouped $ \segment ->
+    -- process each panel
+    fmap (PL.concat . V.toList) . V.forM (V.imap (,) segment) $ \(panel, panelSegment) -> do
+      let (indices, panelSegment') = U.unzip panelSegment
+      -- process every sample for this continous sequence of values
+      fmap PL.concat . forM [0..U.length panelSegment'] $ \idx -> do
+        Just ref <- get
 
-  let clampedBeforePos = max (idx - 16) 0
-  let before           = U.slice clampedBeforePos (idx - clampedBeforePos) scaled
- 
-  -- update window if there is some power available
-  -- let window' = toList $ V.map (! idx) smoothed
-  let enoughPower = power ! idx >= powerLimit
-  -- when enoughPower $ put (Just $ fromList window')
+        let upperIndex = min (idx + windowSize - 1) (len - 1)
+            lowerIndex = max (idx - windowSize) 0
+            extract l u = average $ U.slice l u panelSegment'
 
-  -- classify the current window if there is some power available
-  case (enoughPower, window) of
-    (True, Just window_) -> do
-      let indicators = map (\(val, prev) -> abs (val - prev) >= threshold) $ PL.zip window' (toList window_)
-          checkFault (addr, True) = Just (addr, idx)
-          checkFault (_, False)   = Nothing
-          faults = mapMaybe checkFault $ PL.zip [1..] indicators
-      put (Just $ fromList window'')
-      return faults
-    _                    -> return []
+            sample      = extract idx        (upperIndex - idx + 1)
+            ref'        = extract lowerIndex (idx - lowerIndex)
+
+        if (abs (ref ! panel - sample) <= threshold) then do
+              modify $ \(Just v) -> Just $ U.modify (\v' -> UM.write v' panel ref') v
+              return [(panel, indices ! idx)]
+            else
+              return []
+
+  where
+  grouped       = consec (\idx -> power ! idx >= powerLimit) (V.map (U.imap (,)) samples)
+  initReference = when (not $ PL.null grouped) $ put (Just . convert . V.map (snd . U.head) . PL.head $ grouped)
 
 -- Wrapper iterating over all days and returns date/module of fault
 checkTimePeriod :: Integer -> Maybe Int -> IO [LongFaultDescription (Day, Int)]
