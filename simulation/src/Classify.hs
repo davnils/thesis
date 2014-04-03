@@ -36,11 +36,11 @@ type SystemSSerie = V.Vector Series          -- ^ Indexed by panel, vectors for 
 powerLimit = 1.0
 
 -- | Window size used by sliding average
-windowSize  = 16
+windowSize  = 4
 
 -- | Thresholds in consecutive voltage and current samples that imply faults
 voltageThreshold, currentThreshold :: Float
-(voltageThreshold, currentThreshold) = (0.3, 0.6)
+(voltageThreshold, currentThreshold) = (1, 1) -- (0.3, 0.6)
 
 -- for a given module, define a function which builds the day-vector containing scaled measurements
 extractScaledModule :: SystemSSerie -> ModuleID -> Series
@@ -58,15 +58,6 @@ extractScaledModule daily panel = U.generate numSamples buildSample
     otherSamples   = U.map getSample $ fromList $ [0..panel-2] <> [panel..V.length daily-1]
 
 average vec = (1 / (realToFrac windowSize)) * U.sum vec
-
--- Function which generates a smoothed data series from samples
-{-applyMovingAverage :: Series -> Series
-applyMovingAverage vec = U.generate (U.length vec) average
-  where
-  average idx = (1 / windowSize') * realToFrac (U.sum $ U.slice idx windowSize padded)
-
-  padded      = U.replicate (windowSize - 1) 0.0 <> vec
-  windowSize' = realToFrac windowSize-}
 
 twice f = (***) f f
 
@@ -131,14 +122,15 @@ consec pred vec = go $ U.enumFromN 0 (U.length $ vec ! 0)
     | U.null indices || U.null this = []
     | otherwise                     = V.map (U.slice idx (U.length this)) vec : go rest
     where
-    idx          = this ! 0
-    (this, rest) = U.span pred ff
-    (_, ff)      = U.break pred indices
+    idx          = unsafePerformIO $ {-(putStrLn $ "(this, rest)" <> show ((U.length this, U.length rest)) <> " samples") >>-} return (this ! 0)
+    (this, rest) = unsafePerformIO $ {-(putStrLn $ "(tmp, ff)" <> show ((U.length tmp, U.length ff)) <> " samples") >>-} return (U.span pred ff)
+    (tmp, ff)      = U.break pred indices
 
 -- | Returns with ([], Nothing) if no suitable window is found nor provided
 checkDay :: Series -> SystemSSerie -> Int -> Maybe Window -> Float -> ([FaultDescription], Maybe Window)
 checkDay power samples len window threshold = flip runState window $ do
   get >>= \w -> when (w == Nothing) initReference
+  -- return . unsafePerformIO $ print (U.take 4 $ samples ! 1)
 
   -- process each segment
   fmap PL.concat . forM grouped $ \segment ->
@@ -146,21 +138,22 @@ checkDay power samples len window threshold = flip runState window $ do
     fmap (PL.concat . V.toList) . V.forM (V.imap (,) segment) $ \(panel, panelSegment) -> do
       let (indices, panelSegment') = U.unzip panelSegment
       -- process every sample for this continous sequence of values
-      fmap PL.concat . forM [0..U.length panelSegment'] $ \idx -> do
+      let len' = U.length panelSegment'
+      fmap PL.concat . forM [0..len'-1] $ \idx -> do
         Just ref <- get
 
-        let upperIndex = min (idx + windowSize - 1) (len - 1)
-            lowerIndex = max (idx - windowSize) 0
-            extract l u = average $ U.slice l u panelSegment'
+        let upperIndex  = min (idx + windowSize - 1) (len' - 1)
+            lowerIndex  = max (idx - windowSize + 1) 0
+            extract l u = average $ U.slice l (u - l + 1) panelSegment'
 
-            sample      = extract idx        (upperIndex - idx + 1)
-            ref'        = extract lowerIndex (idx - lowerIndex)
+            sample      = extract idx        upperIndex
+            ref'        = extract lowerIndex idx       
 
-        if (abs (ref ! panel - sample) <= threshold) then do
+        if (abs ((ref ! panel) - sample) <= threshold) then do
               modify $ \(Just v) -> Just $ U.modify (\v' -> UM.write v' panel ref') v
-              return [(panel, indices ! idx)]
-            else
               return []
+            else
+              return [(panel, indices ! idx)]
 
   where
   grouped       = consec (\idx -> power ! idx >= powerLimit) (V.map (U.imap (,)) samples)
@@ -173,13 +166,14 @@ checkTimePeriod year daysCount = do
 
   let processDay (prevFaults, windows) day = do
       putStrLn $ "Checking day: " <> show day
-      print ">>>>>>>>>>> First windows ever"
-      print windows
+      -- print ">>>>>>>>>>> First windows ever"
+      -- print windows
       daily <- retrieveDayValues pool system modules day
-      let (newFaults, windows') = checkDayBoth daily Nothing -- windows
+      -- print daily
+      let (newFaults, windows') = checkDayBoth daily Nothing
           taggedNew = map (\(kind, addr, idx) -> (kind, addr, (day, idx))) newFaults
-      print ">>>>>>>>>>> Last windows ever"
-      print windows'
+      -- print ">>>>>>>>>>> Last windows ever"
+      -- print windows'
       return (taggedNew <> prevFaults, windows')
 
   fst <$> foldM processDay ([], Nothing) days
