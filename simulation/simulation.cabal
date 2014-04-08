@@ -31,11 +31,12 @@ executable sim-admin
 
 executable sim-driver
   main-is: Driver.hs
-  other-modules: Fault, Generate, Reference, Retrieve, Storage
+  other-modules: Classify, Fault, Generate, Reference, Retrieve, Storage
   build-depends:
     async,
     ad,
     base, 
+    deepseq-generics,
     lens, 
     free, 
     time, 

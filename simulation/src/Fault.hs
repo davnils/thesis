@@ -3,7 +3,7 @@
 module Fault where
 
 import Control.Applicative ((<$>))
-import Control.Monad (forM_)
+import Control.Monad (forM_, forM)
 import Data.Monoid ((<>))
 import Data.Time.Calendar
 import Data.Time.Clock
@@ -67,14 +67,14 @@ applyFault system fault = getPool >>= \p -> DB.runCas p $ do
 
   Instant addr time (currChange, voltChange) = fault
 
-generateFaults :: SystemID -> Integer -> Int -> IO ()
+generateFaults :: SystemID -> Integer -> Int -> IO [Fault]
 generateFaults system year faultCount = withSystemRandom $ \gen -> do
   let grab lower upper = uniformR (lower, upper) gen
-  forM_ [1..faultCount] $ \_ -> do
+  forM [1..faultCount] $ \_ -> do
     addr <- grab 1 24
     month <- grab 1 12
     day  <- grab 1 28
-    hour <- toInteger <$> grab 9 (16 :: Int) -- 3 and 22 previously
+    hour <- toInteger <$> grab 3 (22 :: Int)
     minute <- toInteger . (*5) <$> grab 0 (12 :: Int)
     let timestamp = UTCTime (fromGregorian year month day) $ secondsToDiffTime $ hour*3600 + minute*60
 
@@ -85,3 +85,4 @@ generateFaults system year faultCount = withSystemRandom $ \gen -> do
     putStrLn $ "Applying fault: " <> show fault
 
     applyFault system fault
+    return fault

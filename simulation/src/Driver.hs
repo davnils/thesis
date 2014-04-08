@@ -2,6 +2,7 @@
 
 module Main where
 
+import Control.Monad (void)
 import Data.Maybe (fromMaybe)
 import Data.Time.Clock
 import Data.Time.Format (parseTime)
@@ -11,6 +12,7 @@ import System.Environment (getArgs)
 import System.Locale (defaultTimeLocale)
 import Text.Read (readMaybe)
 
+import Classify
 import Fault
 import Generate
 import Retrieve
@@ -41,11 +43,15 @@ parseCmd ["gen", systemStr, startYearStr, endYearStr] = generateYears startYear 
   startYear = read startYearStr
   endYear   = fromMaybe startYear $ readMaybe endYearStr
 
-parseCmd ["fault", systemStr, yearStr, countStr] = generateFaults system year count
+parseCmd ["fault", systemStr, yearStr, countStr] = void $ generateFaults system year count
   where
   system    = read systemStr
   year      = read yearStr
   count     = read countStr
+
+parseCmd ["classify", injectStr] = classify inject
+  where
+  inject = injectStr == "inject"
 
 parseCmd _ = mapM_ putStrLn commands
   where
@@ -53,7 +59,8 @@ parseCmd _ = mapM_ putStrLn commands
               "./driver get system #modules date",
               "./driver get_year system #modules year",
               "./driver gen system start_year end_year",
-              "./driver fault system year #faults"]
+              "./driver fault system year #faults",
+              "./driver classify inject/no-inject"]
 
 main :: IO ()
 main = getArgs >>= parseCmd
