@@ -68,11 +68,36 @@ marketKeyspace = "market_data"
 simulationTable :: CassandraTable
 simulationTable = CassandraTable
   "simulation"
-  [("system",  "int"),
-   ("module",  "int"),
-   ("date",    "timestamp"),
-   ("voltage", "list<float>"),
-   ("current", "list<float>"),
-   ("temperature", "list<float>"),
-   ("primary key", "((system, date), module)")]
+  [("system"      ,"int"),
+   ("module"      ,"int"),
+   ("date"        ,"timestamp"),
+   ("voltage"     ,"list<float>"),
+   ("current"     ,"list<float>"),
+   ("temperature" ,"list<float>"),
+   ("primary key" ,"((system, date), module)")]
+   ""
+
+-- | Table storing fault data.
+faultDataTable :: CassandraTable
+faultDataTable = CassandraTable
+  "fault_data"
+  [("fault_id"    ,"int"),
+   ("date"        ,"timestamp"),
+   ("voltage"     ,"list<float>"),
+   ("current"     ,"list<float>"),
+   ("primary key" ,"((fault_id), date)")]
+   ""
+
+-- | Table storing fault descriptions.
+faultDescTable :: CassandraTable
+faultDescTable = CassandraTable
+  "fault_desc"
+  [("fault_id"    ,"int"),
+   ("system"      ,"int"),
+   ("sys_size"    ,"int"),
+   ("module"      ,"int"),
+   ("date"        ,"timestamp"),
+   ("u_factor"    ,"float"),
+   ("i_factor"    ,"float"),
+   ("primary key" ,"((fault_id))")]
    ""

@@ -27,16 +27,22 @@ data Fault
   | Degradation ModuleID TimePeriod Percent     -- percentual increase in series resistance (NOT IMPLEMENTED)
   deriving (Eq, Show)
 
-applyFault :: SystemID -> Fault -> IO ()
-applyFault system fault = getPool >>= \p -> DB.runCas p $ do
+applyFault :: Int -> SystemID -> Int -> Fault -> IO ()
+applyFault faultID system systemSize fault = getPool >>= \p -> DB.runCas p $ do
   let lastDay = fromGregorian 2014 12 31
 
-  -- TODO: cleanup code
   let (firstDay, days) = case fault of
         Instant _ time' _             -> (utctDay time', drop 1 [utctDay time'..lastDay])
         Degradation _ (first', last') _ -> (first', drop 1 [first'..last'])
  
   processFirstDay firstDay >> forM_ days processOtherDay
+
+  DB.executeWrite DB.ONE
+    (DB.query $ "insert into "
+                <> _tableName faultDescTable
+                <> " (fault_id, system, sys_size, module, date, u_factor, i_factor) values (?, ?, ?, ?, ?, ?, ?)")
+    (faultID, system, systemSize, addr, UTCTime firstDay 0, voltChange, currChange)
+
   where
   processFirstDay day = processDay day $ \current voltage -> (processVec current currChange, processVec voltage voltChange)
     where
@@ -61,21 +67,26 @@ applyFault system fault = getPool >>= \p -> DB.runCas p $ do
 
     DB.executeWrite DB.ONE
       (DB.query $ "insert into "
-                  <> _tableName simulationTable
-                  <> " (system, module, date, current, voltage) values (?, ?, ?, ?, ?)")
-      (system, addr, timestamp, U.toList current', U.toList voltage')
+                  <> _tableName faultDataTable
+                  <> " (fault_id, date, current, voltage) values (?, ?, ?, ?)")
+      (faultID, timestamp, U.toList current', U.toList voltage')
 
   Instant addr time (currChange, voltChange) = fault
 
-generateFaults :: SystemID -> Integer -> Int -> IO [Fault]
-generateFaults system year faultCount = withSystemRandom $ \gen -> do
+generateFaults :: Int -> Integer -> Int -> Int -> IO [Fault]
+generateFaults systems year firstFault lastFault = withSystemRandom $ \gen -> do
   let grab lower upper = uniformR (lower, upper) gen
-  forM [1..faultCount] $ \_ -> do
-    addr <- grab 1 24
+  forM [firstFault..lastFault] $ \faultID -> do
+    system <- grab 1 systems
+
+    systemSize <- grab 16 24
+    addr <- grab 1 systemSize
+
     month <- grab 1 12
-    day  <- grab 1 28
+    day <- grab 1 28
     hour <- toInteger <$> grab 3 (22 :: Int)
     minute <- toInteger . (*5) <$> grab 0 (12 :: Int)
+
     let timestamp = UTCTime (fromGregorian year month day) $ secondsToDiffTime $ hour*3600 + minute*60
 
     voltDegrad <- grab 0.5 0.9
@@ -84,5 +95,5 @@ generateFaults system year faultCount = withSystemRandom $ \gen -> do
 
     putStrLn $ "Applying fault: " <> show fault
 
-    applyFault system fault
+    applyFault faultID system systemSize fault
     return fault

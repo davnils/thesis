@@ -43,15 +43,17 @@ parseCmd ["gen", systemStr, startYearStr, endYearStr] = generateYears startYear 
   startYear = read startYearStr
   endYear   = fromMaybe startYear $ readMaybe endYearStr
 
-parseCmd ["fault", systemStr, yearStr, countStr] = void $ generateFaults system year count
+parseCmd ["fault", systemsStr, yearStr, firstStr, lastStr] = void $ generateFaults systems year firstFault lastFault
   where
-  system    = read systemStr
+  systems   = read systemsStr
   year      = read yearStr
-  count     = read countStr
+  firstFault = read firstStr
+  lastFault = read lastStr
 
-parseCmd ["classify", injectStr] = classify inject
+parseCmd ["classify", firstStr, lastStr] = classify firstFault lastFault
   where
-  inject = injectStr == "inject"
+  firstFault = read firstStr
+  lastFault = read lastStr
 
 parseCmd _ = mapM_ putStrLn commands
   where
@@ -59,8 +61,8 @@ parseCmd _ = mapM_ putStrLn commands
               "./driver get system #modules date",
               "./driver get_year system #modules year",
               "./driver gen system start_year end_year",
-              "./driver fault system year #faults",
-              "./driver classify inject/no-inject"]
+              "./driver fault #systems year first last",
+              "./driver classify first last"]
 
 main :: IO ()
 main = getArgs >>= parseCmd

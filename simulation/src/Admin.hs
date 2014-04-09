@@ -24,7 +24,9 @@ import           Storage
 tables :: [CassandraTable]
 tables =
   [
-    simulationTable
+    simulationTable,
+    faultDataTable,
+    faultDescTable
   ]
 
 -- | Create all schemas, will fail if any already exist.

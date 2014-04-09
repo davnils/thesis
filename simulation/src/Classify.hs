@@ -1,4 +1,4 @@
-{-# Language DeriveGeneric, OverloadedStrings #-}
+{-# Language DeriveGeneric, OverloadedStrings, ScopedTypeVariables #-}
 
 module Classify where
 
@@ -175,74 +175,66 @@ checkDay power samples len window threshold = force . flip runState window $ do
   initReference = when (not $ PL.null grouped) $ put (Just . convert . V.map (average . U.map snd . U.take windowSize) . PL.head $ grouped)
 
 -- Wrapper iterating over all days and returns date/module of fault
-checkTimePeriod :: Int -> Integer -> Maybe Int -> IO [LongFaultDescription (Day, Int)]
-checkTimePeriod system year daysCount = do
-  pool <- getPool
-
+checkTimePeriod :: DB.Pool -> Int -> Int -> Integer -> Int -> Int -> Day -> IO [LongFaultDescription (Day, Int)]
+checkTimePeriod pool system systemSize year faultID panel firstFaultyDay = do
   let processDay (prevFaults, windows) day = do
-      -- putStrLn $ "Checking day: " <> show day
-      -- print ">>>>>>>>>>> First windows ever"
-      -- print windows
-      daily <- retrieveDayValues pool system modules day
-      -- print daily
+      daily <- retrieveDayValues pool system systemSize faultID panel firstFaultyDay day
       let (newFaults, windows') = checkDayBoth daily windows
           taggedNew             = map (\(kind, addr, idx) -> (kind, addr, (day, idx))) newFaults
-      -- print ">>>>>>>>>>> Last windows ever"
-      -- print windows'
       return $ force (taggedNew <> prevFaults, windows')
 
   fst <$> foldM processDay ([], Nothing) days
   where
-  modules    = 24
   firstDay   = fromGregorian year 1 1
-  days       = PL.take daysCount' [firstDay..]
-  daysCount' = fromMaybe 365 daysCount
-  -- days       = [fromGregorian 2014 02 07, fromGregorian 2014 02 07] -- TODO: REMOVE
+  days       = PL.take 365 [firstDay..]
 
-retrieveDayValues :: DB.Pool -> SystemID -> Int -> Day -> IO SystemSerie
-retrieveDayValues pool system modules day = do
-  rows <- DB.runCas pool $ DB.executeRows DB.ALL fetchRows (system, UTCTime day 0, modules)
-  return . V.fromList $ PL.map (fromList *** fromList) rows
+retrieveDayValues :: DB.Pool -> SystemID -> Int -> Int -> Int -> Day -> Day -> IO SystemSerie
+retrieveDayValues pool system systemSize faultID panel firstFaultDay day = do
+  splitted <- fmap PL.concat . DB.runCas pool $ mapM id [fetchBefore, fetchFaulty, fetchAfter]
+  let rows = PL.unzip splitted
+  return . V.map (twice fromList) . uncurry V.zip $ twice fromList rows
   where
-  fetchRows = DB.query $
-    "select voltage,current from "
-    <> _tableName simulationTable
-    <> " where system=? and date=? and module <= ?"
+  coreQuery arg = DB.executeRows DB.ALL
+      (DB.query $ "select voltage,current from " <> _tableName simulationTable <> " where system=? and date=? " <> arg)
+      (system, UTCTime day 0, panel)
 
--- build wrapper for verification of classification rates
--- * generate a random fault (either current or voltage)
--- * apply the fault on a randomly chosen system (from a pre-generated pool of ~100 systems)
--- * run the fault detection and check that:
---   (1) no faults are reported before the date
---   (2) a fault in the correct component is reported on the first day with power output, after the fault has occured
--- * extend these results to <24 panels systems later, eventually to several years
-classify :: Bool -> IO ()
-classify inject = do
-  forM_ [1..systems] $ \sys -> do 
-    putStrLn $ "Checking system " <> show sys
-    if inject then
-        evalInject sys
-      else
-        evalNonInject sys
+  fetchBefore   = coreQuery " and module < ?"
+  fetchAfter    = coreQuery " and module > ?"
+  faultyQuery   = DB.executeRows DB.ALL
+      (DB.query $ "select voltage,current from " <> _tableName faultDataTable <> " where fault_id=? and date=?")
+      (faultID, UTCTime day 0)
+
+  fetchFaulty
+    | day < firstFaultDay = coreQuery " and module=?"
+    | otherwise           = faultyQuery
+
+classify :: Int -> Int -> IO ()
+classify firstFault lastFault = do
+  pool <- getPool
+  forM_ [firstFault..lastFault] $ \faultID -> do
+    putStr $ "#" <> show faultID <> " "
+    checkFault pool faultID
 
   where
-  year    = 2014
-  systems = 100
-  check sys = fmap force $ checkTimePeriod sys year (Just 365)
+  getFaultDesc faultID = DB.executeRow DB.ONE
+      (DB.query $ "select system, sys_size, module, date, u_factor, i_factor from "
+                  <> _tableName faultDescTable
+                  <> " where fault_id=?")
+      (faultID)
 
-  evalInject sys = do
-    [fault@(Instant panel time _)] <- generateFaults sys year 1
-    descs <- check sys
-    let firstFaultDay = PL.foldl' (\s (_,_,(day,_)) -> min s day) (fromGregorian 2014 12 31) descs
+  checkFault pool faultID = do
+    Just (system, sysSize, panel, timestamp, uFactor, iFactor) <- DB.runCas pool $ getFaultDesc faultID
 
-    if firstFaultDay < (utctDay time) then
-        putStrLn $ "false-positive at day " <> show firstFaultDay <> " with fault " <> show fault
+    putStr $ "(" <> show system <> " " <> show sysSize <> " " <> show panel <> " " <> show timestamp
+                 <> " " <> show (uFactor :: Float) <> " " <> show (iFactor :: Float) <> "): "
+
+    let realFaultDay = utctDay timestamp
+        (year, _, _) = toGregorian realFaultDay
+    descs <- fmap force $ checkTimePeriod pool system sysSize year faultID panel realFaultDay
+    let firstFaultDay = PL.foldl' (\s (_,_,(day,_)) -> min s day) (fromGregorian year 12 31) descs
+
+    if firstFaultDay < realFaultDay then
+        putStrLn $ "false-positive at day " <> show firstFaultDay
       else
         -- TODO: Check if firstFaultDay is the first one with non-zero power
-        putStrLn $ "possibly good classification at day " <> show firstFaultDay <> " with fault " <> show fault
-
-  evalNonInject sys = do
-    descs <- check sys
-    when (PL.not $ PL.null descs) $ putStrLn $ "false-positive(s) found: " <> show descs
-
--- TODO: Might need to transfer faults descriptions into separate table, in order to not regenerate tables during testing
+        putStrLn $ "possibly good at day " <> show firstFaultDay
