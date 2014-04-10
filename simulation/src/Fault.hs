@@ -1,4 +1,4 @@
-{-# Language BangPatterns, OverloadedStrings #-}
+{-# Language BangPatterns, OverloadedStrings, ScopedTypeVariables #-}
 
 module Fault where
 
@@ -82,8 +82,10 @@ generateFaults systems year firstFault lastFault = withSystemRandom $ \gen -> d
     systemSize <- grab 16 24
     addr <- grab 1 systemSize
 
-    month <- grab 1 12
-    day <- grab 1 28
+    (month' :: Int) <- grab 1 12
+    (day' :: Int) <- grab 1 28
+    let (month, day) = adjust month' day'
+
     hour <- toInteger <$> grab 3 (22 :: Int)
     minute <- toInteger . (*5) <$> grab 0 (12 :: Int)
 
@@ -97,3 +99,7 @@ generateFaults systems year firstFault lastFault = withSystemRandom $ \gen -> d
 
     applyFault faultID system systemSize fault
     return fault
+
+    where
+    adjust 1 1   = (1, 2)
+    adjust 12 31 = (12, 30)

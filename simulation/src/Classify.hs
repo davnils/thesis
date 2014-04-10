@@ -237,6 +237,7 @@ checkFault pool faultID = do
       putStrLn $ "false-positive at day " <> show firstFaultDay
     else do
       let days = [succ realFaultDay .. pred firstFaultDay]
+          classifierAllowance = 14 -- At most 14 days allowed between occurence and detection
 
       indicators <- forM days $ \day -> do
         daily <- retrieveDay' pool system sysSize day
@@ -244,7 +245,7 @@ checkFault pool faultID = do
         return $ flip PL.any [0..timeLen-1] $ sufficient daily
 
       let zipped = PL.zip indicators days
-      if PL.any id indicators then
+      if PL.length days > classifierAllowance && PL.any id indicators then
           putStrLn  $ "false-positive at day "
                    <> show firstFaultDay
                    <> ", should have classified "

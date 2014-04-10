@@ -46,7 +46,7 @@ retrieveDay system modules day = getPool >>= (\p -> retrieveDay' p system module
 
 retrieveDay' :: DB.Pool -> SystemID -> Int -> Day -> IO Result
 retrieveDay' pool system modules day = do
-  putStrLn $ "Retrieving day: " <> show day
+  -- putStrLn $ "Retrieving day: " <> show day
   rows <- DB.runCas pool $ DB.executeRows DB.ALL fetchRows (system, UTCTime day 0, modules)
   return . V.fromList $ PL.map (\(l, m, r) -> (U.fromList l, U.fromList m, U.fromList r)) rows
   where
