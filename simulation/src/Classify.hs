@@ -29,6 +29,7 @@ import System.Locale (defaultTimeLocale)
 
 import Fault
 import Reference
+import Retrieve
 import Storage
 
 type Series = U.Vector Float                 -- ^ Vector of measurements.
@@ -215,26 +216,43 @@ classify firstFault lastFault = do
     putStr $ "#" <> show faultID <> " "
     checkFault pool faultID
 
+getFaultDesc faultID = DB.executeRow DB.ONE
+    (DB.query $ "select system, sys_size, module, date, u_factor, i_factor from "
+                <> _tableName faultDescTable
+                <> " where fault_id=?")
+    (faultID)
+
+checkFault pool faultID = do
+  Just (system, sysSize, panel, timestamp, uFactor, iFactor) <- DB.runCas pool $ getFaultDesc faultID
+
+  putStr $ "(" <> show system <> " " <> show sysSize <> " " <> show panel <> " " <> show timestamp
+               <> " " <> show (uFactor :: Float) <> " " <> show (iFactor :: Float) <> "): "
+
+  let realFaultDay = utctDay timestamp
+      (year, _, _) = toGregorian realFaultDay
+  descs <- fmap force $ checkTimePeriod pool system sysSize year faultID panel realFaultDay
+  let firstFaultDay = PL.foldl' (\s (_,_,(day,_)) -> min s day) (fromGregorian year 12 31) descs
+
+  if firstFaultDay < realFaultDay then
+      putStrLn $ "false-positive at day " <> show firstFaultDay
+    else do
+      let days = [succ realFaultDay .. pred firstFaultDay]
+
+      indicators <- forM days $ \day -> do
+        daily <- retrieveDay' pool system sysSize day
+        let timeLen = U.length . (\(_,_,t) -> t) . V.head $ daily
+        return $ flip PL.any [0..timeLen-1] $ sufficient daily
+
+      let zipped = PL.zip indicators days
+      if PL.any id indicators then
+          putStrLn  $ "false-positive at day "
+                   <> show firstFaultDay
+                   <> ", should have classified "
+                   <> show (PL.snd . PL.last $ PL.takeWhile fst zipped)
+        else
+          putStrLn $ "valid at day " <> show firstFaultDay
+
+sufficient daily idx = power >= powerLimit
   where
-  getFaultDesc faultID = DB.executeRow DB.ONE
-      (DB.query $ "select system, sys_size, module, date, u_factor, i_factor from "
-                  <> _tableName faultDescTable
-                  <> " where fault_id=?")
-      (faultID)
-
-  checkFault pool faultID = do
-    Just (system, sysSize, panel, timestamp, uFactor, iFactor) <- DB.runCas pool $ getFaultDesc faultID
-
-    putStr $ "(" <> show system <> " " <> show sysSize <> " " <> show panel <> " " <> show timestamp
-                 <> " " <> show (uFactor :: Float) <> " " <> show (iFactor :: Float) <> "): "
-
-    let realFaultDay = utctDay timestamp
-        (year, _, _) = toGregorian realFaultDay
-    descs <- fmap force $ checkTimePeriod pool system sysSize year faultID panel realFaultDay
-    let firstFaultDay = PL.foldl' (\s (_,_,(day,_)) -> min s day) (fromGregorian year 12 31) descs
-
-    if firstFaultDay < realFaultDay then
-        putStrLn $ "false-positive at day " <> show firstFaultDay
-      else
-        -- TODO: Check if firstFaultDay is the first one with non-zero power
-        putStrLn $ "possibly good at day " <> show firstFaultDay
+  power   = V.sum $ V.map (uncurry (*)) samples
+  samples = V.map (\(v1,v2,_) -> (v1 ! idx, v2 ! idx)) daily
