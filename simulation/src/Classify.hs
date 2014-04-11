@@ -23,7 +23,7 @@ import Prelude
 import qualified Data.List as PL
 import qualified Prelude as PL
 import System.Environment (getArgs)
-import System.IO (hPutStr, hPutStrLn, IOMode(..), withFile)
+import System.IO (hFlush, hPutStr, hPutStrLn, IOMode(..), stderr, stdout, withFile)
 import System.IO.Unsafe (unsafePerformIO)
 import System.Locale (defaultTimeLocale)
 
@@ -215,6 +215,7 @@ classify firstFault lastFault = do
   forM_ [firstFault..lastFault] $ \faultID -> do
     putStr $ "#" <> show faultID <> " "
     checkFault pool faultID
+    mapM hFlush [stdout, stderr]
 
 getFaultDesc faultID = DB.executeRow DB.ONE
     (DB.query $ "select system, sys_size, module, date, u_factor, i_factor from "
