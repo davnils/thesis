@@ -103,3 +103,4 @@ generateFaults systems year firstFault lastFault = withSystemRandom $ \gen -> d
     where
     adjust 1 1   = (1, 2)
     adjust 12 31 = (12, 30)
+    adjust m d   = (m, d)
