@@ -37,11 +37,6 @@ type Window = U.Vector Float                 -- ^ Indexed by panel, single measu
 type SystemSerie = V.Vector (Series, Series) -- ^ Indexed by panel, vectors for voltage and current.
 type SystemSSerie = V.Vector Series          -- ^ Indexed by panel, vectors for a single measurement.
 
-{-data FaultType
-  = VoltageFault
-  | CurrentFault
-  deriving (Eq, Show)-}
-
 head' str []   = error $ "Invalid head on empty list (" <> str <> ")"
 head' _ (x:_) = x
 
@@ -102,10 +97,16 @@ type LongFaultDescription a = (FaultType, ModuleID, a)
 joinM :: Monad m => (m a1, m a2) -> m (a1, a2)
 joinM = uncurry $ liftM2 (,)
 
-checkDayBoth :: SystemSerie -> Maybe (Window, Window) -> ([LongFaultDescription Int], Maybe (Window, Window))
-checkDayBoth day windows = force (faults, windows')
+checkDayBoth :: SystemSerie -> Maybe (Window, Window) -> FaultType -> ([LongFaultDescription Int], Maybe (Window, Window))
+checkDayBoth day windows faultType = force (faults, windows')
   where
-  faults                    = tag VoltageFault voltFaults <> tag CurrentFault currFaults
+  faults                    = case faultType of
+                                VoltageFault -> voltFaults'
+                                CurrentFault -> currFaults'
+                                _ -> voltFaults' <> currFaults'
+
+  currFaults'              = tag CurrentFault currFaults
+  voltFaults'               = tag VoltageFault voltFaults
   windows'                  = joinM (voltWindow', currWindow')
   (voltFaults, voltWindow') = checkDay power smoothedVolt len (fmap fst windows) voltageThreshold
   (currFaults, currWindow') = checkDay power smoothedCurr len (fmap snd windows) currentThreshold
@@ -184,11 +185,11 @@ checkDay power samples len window threshold = force . flip runState window $ do
   initReference = when (not $ PL.null grouped) $ put (Just . convert . V.map (average . U.map snd . U.take windowSize) . head' "initRef" $ grouped)
 
 -- Wrapper iterating over all days and returns date/module of fault
-checkTimePeriod :: DB.Pool -> Int -> Int -> Integer -> Int -> Int -> Day -> IO [LongFaultDescription (Day, Int)]
-checkTimePeriod pool system systemSize year faultID panel firstFaultyDay = do
+checkTimePeriod :: DB.Pool -> Int -> Int -> Integer -> Int -> Int -> Day -> FaultType -> IO [LongFaultDescription (Day, Int)]
+checkTimePeriod pool system systemSize year faultID panel firstFaultyDay faultType = do
   let processDay (prevFaults, windows) day = do
       daily <- retrieveDayValues pool system systemSize faultID panel firstFaultyDay day
-      let (newFaults, windows') = checkDayBoth daily windows
+      let (newFaults, windows') = checkDayBoth daily windows faultType
           taggedNew             = map (\(kind, addr, idx) -> (kind, addr, (day, idx))) newFaults
       return $ force (taggedNew <> prevFaults, windows')
 
@@ -221,8 +222,7 @@ classify :: Int -> Int -> IO ()
 classify firstFault lastFault = do
   pool <- getPool
   forM_ [firstFault..lastFault] $ \faultID -> do
-    putStr $ "#" <> show faultID <> " "
-    checkFault pool faultID
+    mapM_ (checkFault pool faultID) [VoltageFault, CurrentFault]
     mapM hFlush [stdout, stderr]
 
 getFaultDesc faultID = DB.executeRow DB.ONE
@@ -231,15 +231,18 @@ getFaultDesc faultID = DB.executeRow DB.ONE
                 <> " where fault_id=?")
     (faultID)
 
-checkFault pool faultID = do
+checkFault pool faultID faultType = do
   Just (system, sysSize, panel, timestamp, uFactor, iFactor) <- DB.runCas pool $ getFaultDesc faultID
 
-  putStr $ "(" <> show system <> " " <> show sysSize <> " " <> show panel <> " " <> show timestamp
-               <> " " <> show (uFactor :: Float) <> " " <> show (iFactor :: Float) <> "): "
+  let val VoltageFault = uFactor :: Float
+      val CurrentFault = iFactor :: Float
+
+  putStr $ "(" <> show faultID <> " " <> show faultType <> " " <> show system <> " " <> show sysSize
+           <> " " <> show panel <> " " <> show timestamp <> " " <> show (val faultType) <> "): "
 
   let realFaultDay = utctDay timestamp
       (year, _, _) = toGregorian realFaultDay
-  descs <- fmap force $ checkTimePeriod pool system sysSize year faultID panel realFaultDay
+  descs <- fmap force $ checkTimePeriod pool system sysSize year faultID panel realFaultDay faultType
   let firstFaultDay = PL.foldl' (\s (_,_,(day,_)) -> min s day) (fromGregorian year 12 31) descs
 
   case (length descs, compare firstFaultDay realFaultDay) of
