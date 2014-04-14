@@ -37,6 +37,14 @@ type Window = U.Vector Float                 -- ^ Indexed by panel, single measu
 type SystemSerie = V.Vector (Series, Series) -- ^ Indexed by panel, vectors for voltage and current.
 type SystemSSerie = V.Vector Series          -- ^ Indexed by panel, vectors for a single measurement.
 
+{-data FaultType
+  = VoltageFault
+  | CurrentFault
+  deriving (Eq, Show)-}
+
+head' str []   = error $ "Invalid head on empty list (" <> str <> ")"
+head' _ (x:_) = x
+
 -- | Limit in Watt for all samples surveyed
 powerLimit = 1.0
 
@@ -173,7 +181,7 @@ checkDay power samples len window threshold = force . flip runState window $ do
 
   where
   grouped       = consec (\idx -> power ! idx >= powerLimit) (V.map (U.imap (,)) samples)
-  initReference = when (not $ PL.null grouped) $ put (Just . convert . V.map (average . U.map snd . U.take windowSize) . PL.head $ grouped)
+  initReference = when (not $ PL.null grouped) $ put (Just . convert . V.map (average . U.map snd . U.take windowSize) . head' "initRef" $ grouped)
 
 -- Wrapper iterating over all days and returns date/module of fault
 checkTimePeriod :: DB.Pool -> Int -> Int -> Integer -> Int -> Int -> Day -> IO [LongFaultDescription (Day, Int)]
@@ -234,10 +242,11 @@ checkFault pool faultID = do
   descs <- fmap force $ checkTimePeriod pool system sysSize year faultID panel realFaultDay
   let firstFaultDay = PL.foldl' (\s (_,_,(day,_)) -> min s day) (fromGregorian year 12 31) descs
 
-  if firstFaultDay < realFaultDay then
-      putStrLn $ "false-positive at day " <> show firstFaultDay
-    else do
-      let days = [succ realFaultDay .. pred firstFaultDay]
+  case (length descs, compare firstFaultDay realFaultDay) of
+    (_, LT) -> putStrLn $ "false-positive at day " <> show firstFaultDay
+    (0, _)  -> putStrLn "no faults found"
+    _  -> do
+      let days                = [succ realFaultDay .. pred firstFaultDay]
           classifierAllowance = 14 -- At most 14 days allowed between occurence and detection
 
       indicators <- forM days $ \day -> do
