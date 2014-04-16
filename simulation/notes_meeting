@@ -1,0 +1,3 @@
+Evaluate regression when keeping I_photo constant (i.e. over a short period of time).
+Evaluate ad-hoc method based on differences. Keep several ref windows based on smoothed values.
+Consider solar plane-model for each panel alone. Need to handle local clustering in some way.
