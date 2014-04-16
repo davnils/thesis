@@ -50,7 +50,7 @@ applyFault faultID system systemSize fault = getPool >>= \p -> DB.runCas p $ do
       where
       (skip, process) = (U.take skipCount vec, U.drop skipCount vec)
 
-    skipCount      = fromInteger $ quot ((quot secondsDiff 60) - 4*60) interval
+    skipCount      = fromInteger $ quot ((quot secondsDiff 60) - 4*60) (fromIntegral interval)
     secondsDiff    = round $ utcTimeToPOSIXSeconds time - utcTimeToPOSIXSeconds (UTCTime (utctDay time) 0)
 
   processOtherDay day = processDay day $ \current voltage -> (U.map (*currChange) current, U.map (*voltChange) voltage)

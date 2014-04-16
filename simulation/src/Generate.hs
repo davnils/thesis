@@ -39,7 +39,7 @@ generateYear pool table modules year system = do
       liftIO . putStrLn $ "Generating power curve (module: " <> show addr <> ")"
       DB.runCas pool $ M.forM_ (PL.zip [firstDay..lastDay] indices) $ \(day, offset) -> do
         let tempSlice = U.slice (offset*perDay + 3*perHour -  1) (perDay - 4*perHour) temperatures'
-        let curve = generatePowerCurve table 5 day sm tempSlice
+        let curve = generatePowerCurve table interval day sm tempSlice
         daily <- liftIO $ applyVoltageNoise stdDev gen curve
         let (voltage, current, temperature) = U.unzip3 daily
         write (UTCTime day 0) sm voltage current temperature
@@ -56,7 +56,7 @@ generateYear pool table modules year system = do
   firstDay  = fromGregorian year 0 1
   lastDay   = fromGregorian year 12 31
   perDay    = 24*perHour
-  perHour   = 12
+  perHour   = quot 60 interval
   indices = PL.concat . PL.repeat . PL.take 365 $ [0..]
 
 generateYears :: Integer -> Integer -> Int -> IO ()
