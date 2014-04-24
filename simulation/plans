@@ -1,0 +1,41 @@
+Given two months (possibly different years).
+Naive algorithm traverses the second month for all samples in the first.
+=> O(k^2), where k is at most ~ 9000
+
+Another approach might be to perform a pre-computation and group the data samples.
+
+Begin with naive algorithm and implements all the other logic.
+Hopefully the db-cost won't be too significant.
+Minutes of processing time is reasonable.
+
+Given two series s1, s2 and some epsilon.
+Check if all samples (of voltage, current, and temperature) but k are within epsilon.
+
+The result is a list of (addr, measurement, difference) of all points that differ significantly.
+
+Given two vectors v1 and v2.
+v' = abs(v1 - v2)
+filtered = filter (>= epsilon) v'
+if (length filtered <= k) $ emit address, type, and time of entries in filtered
+
+Use some empirically determined epsilon.
+
+-- note that we should only emit large differences in voltage and current
+
+Implement this function generically since it might be of interest to add averaged windows later.
+(Due to noise we might otherwise have false-positives
+-- note that we should only emit large differences in voltage and current
+
+This can be tested by supporting "degradation fault" injection which applies a time-dependent function on the original data series.
+=> Inject a degradation and determine the precision in classification performance.
+   (Rate of false-positives and least required fault that can be detected).
+   Doesn't need to be exhaustive.
+
+====================================
+========== IMPLEMENTATION ==========
+====================================
+
+Use the retrieve-day function to pull all three vectors for a specific day.
+Apply the check-functions on two vectors and aggregate the results.
+
+The check functions basically performs the operations outlined above.
