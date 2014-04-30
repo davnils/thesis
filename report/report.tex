@@ -46,9 +46,13 @@ Degradation occurs naturally in solar panels and it is of interest to quantify t
 
 \section{Purpose of this thesis}
 The purpose of this thesis is to study and develop new methods for fault detection in the context of distributed inverter systems.
-%TODO
-\emph{\color{red}This section will be extended with a detailed description regarding what this thesis attempts to answer}
 
+\subsection*{Problem statement}
+Can potential faults in a solar panel, in the context of installations with the specified properties, be detected by studying the available measurements?
+This includes the capability of differentiating panel faults from partial shading of the panel.
+The problem is how to perform detection efficiently in the presence of different system configurations, but also geographic and thermal dependencies, since all systems deliver different power curves.
+
+\subsection*{Constraints}
 The most important scope limitation is that systems should only be studied passively, i.e. the available measurements are used to detect faulty panels.  
 Some technical constraints are present as well:
 \begin{itemize}
@@ -419,29 +423,70 @@ This is attributed to changing spectral conditions.
 
 \section{Summary}
 %TODO
-{\color{red} This section will draw conclusions regarding the applicability of various methods to this specific study.}
+% {\color{red} This section will draw conclusions regarding the applicability of various methods to this specific study.}
+The constraints of thesis also affect the applicability of many of the previously mentioned methods.
+Firstly, the constraint of only having access to voltage, current, and low-precision temperature values restricts the immediate applicability of many methods.
+The lack of irradiance measurements contributes to a more general setting in the case of the one-diode model, since the $I_{photo}$ value needs to be considered unknown.
+Since the temperature is not measured at the PN-junction, the corresponding term in the one-diode model needs to be modelled as an expression of the actual measured value.
+In general this contributes to a very general theoretical model which not necessarily can be fitted onto a set of data samples, as described in studies based on an analytical model.
+
+Secondly, it is important to distinguish between the cases of having several identical PV strings or panels, from the case of several panels with possibly different characteristics.
+This implies that the methods based on outlier detection do not transfer naturally, since the offsets between panels need be taken into account.
+
+Detection of partial shading does not have the same dependency on specifics on the solar installation, since it only assumes access to an existing flow of fault classifications.
+The method of studying a solar plane and correlations with the reported faults is suitable for this thesis.
+
+Degradation measurements are also affected by the lack of irradiation and junction-level temperature measurements.
+The studies mentioned rely on correcting for these factors when comparing two points in time, in order to determine the degradation in power output.
+Hence another approach would be to generalize this procedure for the case unknown irradiance and a model of the junction-level temperature.
 
 \chapter{Implementation}
-%TODO
-General chapter regarding what has been implemented as part of this report.
+This chapter describes the approaches that have been taken to solve the problems stated in the introduction.
+Each section is described separately with algorithmic outlines and general comments regarding applicability within the scope of this thesis.
 
 \section{Simulation framework}
+A central part of this thesis has been to develop a simulation framework in order to study the different problems in various aspects.
+This is necessary since a algorithmic approach to e.g. fault detection needs to be evaluated under real life conditions.
+It is also important to take different system characteristics and system configurations into account when presenting classification results.
+
+The simulation framework consists of several parts.
+It is implemented as a driver program which interfaces towards a database, either generating data or fetching data for e.g. classification purposes.
+
+Data generation has been implemented based on real life measurements of yearly irradiance and temperature values gathered at a location in Stockholm, Sweden.
+These inputs are used together with the parameters of a solar installation, in order to generate a resulting series of voltage, current, and temperature values at 5 minute intervals.
+
 %TODO
-Description of how the simulation framework was implemented.
-Discussion on validation of results based on the generated data.
-Description of how statistical assurance was achieved.
+
+The second part of the data generation is injecting faults into output of solar installations.
+This has been implemented as a fault occurring at some fixed point in time, with an independent percentage loss in voltage and current.
+These faults may also occur during night or during low irradiance conditions, as motivated by the possible classification difficulties previously discussed.
+
+The generated data has then been used in order to determine classification performance.
+This has been implemented as some external procedure receiving input measurements from a whole installation over time.
+Hence this approach reflects real life use cases where online classification is performed.
+Repeating this process over many different systems with different configuration results in statistically significant results, applicable to systems concerned in this thesis.
+The procedures being applied on the data streams are described in the following sections.
 
 \section{Immediate failure detection}
 %TODO
 Discussion on how immediate failure detection was implemented, with some basic code constructs.
 
+Describe implementation of online algorithm.
+Discuss choice of threshold parameters.
+
 \section{Measuring degradation}
 %TODO
 Discussion on how degradation measurement was implemented.
 
+Describe taking the approach of fitting data using one-diode model.
+Discuss difficulties relating to amount of data available, computation constraints.
+Describe alternative approach based on epsilon-close samples.
+
 \section{Detection of partial shading}
 %TODO
 Discussion on how partial shading detection was implemented.
+
+Discuss solar plane and auto correlation methods.
 
 \chapter{Results}
 %TODO
