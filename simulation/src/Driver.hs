@@ -16,6 +16,7 @@ import Classify
 import Fault
 import Generate
 import Retrieve
+import Measure
 
 parseCmd :: [String] -> IO ()
 
@@ -45,15 +46,20 @@ parseCmd ["gen", systemStr, startYearStr, endYearStr] = generateYears startYear 
 
 parseCmd ["fault", systemsStr, yearStr, firstStr, lastStr] = void $ generateFaults systems year firstFault lastFault
   where
-  systems   = read systemsStr
-  year      = read yearStr
+  systems    = read systemsStr
+  year       = read yearStr
   firstFault = read firstStr
-  lastFault = read lastStr
+  lastFault  = read lastStr
 
 parseCmd ["classify", firstStr, lastStr] = classify firstFault lastFault
   where
   firstFault = read firstStr
-  lastFault = read lastStr
+  lastFault  = read lastStr
+
+parseCmd ["degrad", firstStr, lastStr] = checkDegrads firstFault lastFault
+  where
+  firstFault = read firstStr
+  lastFault  = read lastStr
 
 parseCmd _ = mapM_ putStrLn commands
   where
