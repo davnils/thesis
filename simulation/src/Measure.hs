@@ -44,7 +44,13 @@ type Triple = (U.Vector Float, U.Vector Float, U.Vector Float)
 measureTimePeriod :: DB.Pool -> Day -> Day -> Int -> Day -> IO (Maybe (Int, (Int, [Float], [Float])))
 measureTimePeriod pool firstWindow secondWindow faultID firstFaultDay = do
   [first, second] <- mapM (fetchMonth pool) [firstWindow, secondWindow]
-  let maxSamples = undefined :: Int
+  let maxSamples = U.length ((\(x,_,_) -> x) (first ! 0))
+
+  let debuglen = U.length ((\(x,_,_) -> x) (second ! 0))
+  putStrLn $ "maxSamples=" <> show maxSamples <> ", length of other vec=" <> show debuglen
+  putStrLn $ "firstW=" <> show firstWindow <> ", secondW=" <> show secondWindow
+  putStrLn $ "outer size=" <> show (V.length first) <> " and sndsize=" <> show (V.length second)
+
   res <- fmap PL.concat . forM [0..maxSamples-1] $ \idx -> do
     indicators <- forM [idx..maxSamples-1] $ \idx' -> do
       let grabVec f vec step = V.map ((!step) . f) $ vec
@@ -79,8 +85,13 @@ measureTimePeriod pool firstWindow secondWindow faultID firstFaultDay = do
     v3 <- getTempVectors pool day
     return $ V.zip3 v1 v2 v3
 
-  fetchOthers pool day    = fmap fold $ mapM (retrieveDayValues pool system modules faultID 0 firstFaultDay) $ take 30 [day ..] 
-  getTempVectors pool day = fmap (V.map (\(_,_,t) -> t) . fold) $ mapM (retrieveDay system modules) $ take 30 [day ..]
+  -- implement [V.Vec (U, U, ,U)] -> V.Vec (U, U, ,U) while maintaining constant outer dimension
+  fetchOthers pool day    = mapM (retrieveDayValues pool system modules faultID 0 firstFaultDay) days
+  getTempVectors pool day = fmap (V.map (\(_,_,t) -> t) . fold) $ mapM (retrieveDay system modules) days
+  days                    = take 28 [day ..]
+
+  -- .
+  merge (vec:xs) = undefined -- TODO: needs to be defined
 
 checkDegrads :: Int -> Int -> IO ()
 checkDegrads firstFault lastFault = mapM_ checkDegrad [firstFault..lastFault]

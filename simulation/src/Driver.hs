@@ -44,12 +44,14 @@ parseCmd ["gen", systemStr, startYearStr, endYearStr] = generateYears startYear 
   startYear = read startYearStr
   endYear   = fromMaybe startYear $ readMaybe endYearStr
 
-parseCmd ["fault", systemsStr, yearStr, firstStr, lastStr] = void $ generateFaults systems year firstFault lastFault
+parseCmd ("fault":systemsStr:yearStr:firstStr:lastStr:finalYearStr) =
+  void $ generateFaults systems year finalYear firstFault lastFault
   where
   systems    = read systemsStr
   year       = read yearStr
   firstFault = read firstStr
   lastFault  = read lastStr
+  finalYear  = if null finalYearStr then Nothing else Just (read $ head finalYearStr)
 
 parseCmd ["classify", firstStr, lastStr] = classify firstFault lastFault
   where
@@ -67,7 +69,7 @@ parseCmd _ = mapM_ putStrLn commands
               "./driver get system #modules date",
               "./driver get_year system #modules year",
               "./driver gen system start_year end_year",
-              "./driver fault #systems year first last",
+              "./driver fault #systems year first last [final_year]",
               "./driver classify first last"]
 
 main :: IO ()
