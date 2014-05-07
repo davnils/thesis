@@ -70,6 +70,7 @@ parseCmd _ = mapM_ putStrLn commands
               "./driver get_year system #modules year",
               "./driver gen system start_year end_year",
               "./driver fault #systems year first last [final_year]",
+              "./driver degrad first last",
               "./driver classify first last"]
 
 main :: IO ()

@@ -6,6 +6,7 @@ import Control.Applicative ((<$>))
 import Control.Arrow(first, (***))
 import Control.DeepSeq.Generics (force, NFData)
 import Control.Monad (forM_, forM, foldM, liftM2, when)
+import Control.Monad.Trans (liftIO)
 import Control.Monad.State.Strict(get, modify, put, runState)
 import Data.Maybe (mapMaybe, fromMaybe)
 import Data.Monoid ((<>))
@@ -200,23 +201,23 @@ checkTimePeriod pool system systemSize year faultID panel firstFaultyDay faultTy
 
 retrieveDayValues :: DB.Pool -> SystemID -> Int -> Int -> Int -> Day -> Day -> IO SystemSerie
 retrieveDayValues pool system systemSize faultID panel firstFaultDay day = do
-  splitted <- fmap PL.concat . DB.runCas pool $ mapM id [fetchBefore, fetchFaulty, fetchAfter]
+  splitted <- fmap PL.concat . DB.runCas pool $ sequence [fetchBefore, fetchFaulty, fetchAfter]
   let rows = PL.unzip splitted
   return . V.map (twice fromList) . uncurry V.zip $ twice fromList rows
   where
-  coreQuery arg = DB.executeRows DB.ALL
-      (DB.query $ "select voltage,current from " <> _tableName simulationTable <> " where system=? and date=? " <> arg)
-      (system, UTCTime day 0, panel)
-
-  fetchBefore   = coreQuery " and module < ?"
-  fetchAfter    = coreQuery " and module > ?"
-  faultyQuery   = DB.executeRows DB.ALL
-      (DB.query $ "select voltage,current from " <> _tableName faultDataTable <> " where fault_id=? and date=?")
-      (faultID, UTCTime day 0)
-
+  fetchBefore             = coreQuery " and module < ?"
+  fetchAfter              = coreQuery " and module > ?"
   fetchFaulty
     | day < firstFaultDay = coreQuery " and module=?"
     | otherwise           = faultyQuery
+
+  coreQuery arg           = DB.executeRows DB.ALL
+      (DB.query $ "select voltage,current from " <> _tableName simulationTable <> " where system=? and date=? " <> arg)
+      (system, UTCTime day 0, panel)
+
+  faultyQuery             = DB.executeRows DB.ALL
+      (DB.query $ "select voltage,current from " <> _tableName faultDataTable <> " where fault_id=? and date=?")
+      (faultID, UTCTime day 0)
 
 classify :: Int -> Int -> IO ()
 classify firstFault lastFault = do
