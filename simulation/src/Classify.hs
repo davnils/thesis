@@ -106,7 +106,7 @@ checkDayBoth day windows faultType = force (faults, windows')
                                 CurrentFault -> currFaults'
                                 _ -> voltFaults' <> currFaults'
 
-  currFaults'              = tag CurrentFault currFaults
+  currFaults'               = tag CurrentFault currFaults
   voltFaults'               = tag VoltageFault voltFaults
   windows'                  = joinM (voltWindow', currWindow')
   (voltFaults, voltWindow') = checkDay power smoothedVolt len (fmap fst windows) voltageThreshold
@@ -139,17 +139,14 @@ consec pred vec = go $ U.enumFromN 0 (U.length $ vec ! 0)
     | U.null indices || U.null this = []
     | otherwise                     = V.map (U.slice idx (U.length this)) vec : go rest
     where
-    idx          = unsafePerformIO $ {-(putStrLn $ "(this, rest)" <> show ((U.length this, U.length rest)) <> " samples") >>-} return (this ! 0)
-    (this, rest) = unsafePerformIO $ {-(putStrLn $ "(tmp, ff)" <> show ((U.length tmp, U.length ff)) <> " samples") >>-} return (U.span pred ff)
+    idx          = this ! 0
+    (this, rest) = U.span pred ff
     (tmp, ff)    = U.break pred indices
 
 -- | Returns with ([], Nothing) if no suitable window is found nor provided
 checkDay :: Series -> SystemSSerie -> Int -> Maybe Window -> Float -> ([FaultDescription], Maybe Window)
 checkDay power samples len window threshold = force . flip runState window $ do
   get >>= \w -> when (w == Nothing) initReference
-
-  -- (TODO: REMOVE) print all values for a specific module in some way..
-  -- unsafePerformIO $ (print $ samples ! 19) >> return (get >>= \w -> when (w == Nothing) (put undefined))
 
   -- process each segment
   fmap PL.concat . forM grouped $ \segment ->
@@ -162,9 +159,6 @@ checkDay power samples len window threshold = force . flip runState window $ do
         Just ref <- get
 
         -- handle start and end in a special way
-        -- the absolute first sample (ever) should be average, i.e. update initReference
-        -- the second set of samples should not be considered for fault detection, i.e. only iterate until len'-1 - windowSize/2 or w/e
-
         let upperIndex  = min (idx + windowSize - 1) (len' - 1)
             lowerIndex  = max (idx - windowSize + 1) 0
             extract l u = average $ U.slice l (u - l + 1) panelSegment'
@@ -172,14 +166,11 @@ checkDay power samples len window threshold = force . flip runState window $ do
             sample      = extract idx        upperIndex
             ref'        = extract lowerIndex idx
 
-        let threshold'  = threshold {- unsafePerformIO $
-                            (when (panel == 19 && threshold == voltageThreshold) $ putStrLn $ "(ref, sample, ref'): " <> show (ref ! panel) <> "," <> show sample <> "," <> show ref') >> return threshold -}
-
-        if (abs ((ref ! panel) - sample) <= threshold') then do
+        if (abs ((ref ! panel) - sample) <= threshold) then do
               modify $ \(Just v) -> Just $ U.modify (\v' -> UM.write v' panel ref') v
               return []
             else
-              return {-$ unsafePerformIO $ putStrLn "found fault" >> return -} [(panel, indices ! idx)]
+              return [(panel, indices ! idx)]
 
   where
   grouped       = consec (\idx -> power ! idx >= powerLimit) (V.map (U.imap (,)) samples)
@@ -271,3 +262,34 @@ sufficient daily idx = power >= powerLimit
   where
   power   = V.sum $ V.map (uncurry (*)) samples
   samples = V.map (\(v1,v2,_) -> (v1 ! idx, v2 ! idx)) daily
+
+-- TODO: Need to handle continous classification even after finding an error
+--       For example that module could be ignored for x samples or something
+checkExternal :: (String, String) -> FaultType -> IO [LongFaultDescription (Int)]
+checkExternal (currPath, voltPath) faultType = do
+  rawCurr <- buildMatrix <$> readFile currPath
+  rawVolt <- buildMatrix <$> readFile voltPath
+
+  let currs  = PL.map (\i -> U.fromList $ rawCurr !! i) [0..num-1]
+      volts  = PL.map (\i -> U.fromList $ rawVolt !! i) [0..num-1]
+      rawVec = V.fromList $ PL.zip currs volts
+
+  let processDay (prevFaults, windows) (off1, off2) = do
+      let daily                 = V.map (twice $ U.slice (off1 - 1) ((off2 - 1) - off1 + 1)) rawVec
+          (newFaults, windows') = checkDayBoth daily windows faultType
+          taggedNew             = map (\(kind, addr, idx) -> (kind, addr, (idx))) newFaults
+      return $ force (taggedNew <> prevFaults, windows')
+
+  fst <$> foldM processDay ([], Nothing) chunks
+  where
+  chunks      = let v = [1, 183, 381, 575, 766, 968] in PL.zip v (PL.tail v)
+  num         = 16
+  buildMatrix = PL.transpose . PL.map (PL.map PL.read . PL.words) . PL.lines 
+
+evaluateExternal = do
+  let check = checkExternal ("logs/kth/out_curr", "logs/kth/out_volt")
+
+  curr <- check CurrentFault
+  volt <- check VoltageFault
+  print $ curr
+  print $ volt

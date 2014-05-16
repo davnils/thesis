@@ -63,6 +63,8 @@ parseCmd ["degrad", firstStr, lastStr] = checkDegrads firstFault lastFault
   firstFault = read firstStr
   lastFault  = read lastStr
 
+parseCmd ["eval"] = evaluateExternal
+
 parseCmd _ = mapM_ putStrLn commands
   where
   commands = ["Invalid command, use:",
@@ -71,6 +73,7 @@ parseCmd _ = mapM_ putStrLn commands
               "./driver gen system start_year end_year",
               "./driver fault #systems year first last [final_year]",
               "./driver degrad first last",
+              "./driver eval",
               "./driver classify first last"]
 
 main :: IO ()
