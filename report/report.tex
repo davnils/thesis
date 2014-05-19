@@ -481,6 +481,16 @@ Discussion on how degradation measurement was implemented.
 Describe taking the approach of fitting data using one-diode model.
 Discuss difficulties relating to amount of data available, computation constraints.
 Describe alternative approach based on epsilon-close samples.
+Plot the corresponding precision plot.
+
+% build a N(x,y)-like graph over measured degradation in all non-faulty modules
+% interested in the error rate for the faulty ones.
+% each error can be seen as a scalar (real - estimate)
+% plot the distribution of these.
+% might need additional data, but the graph can be extended later (something like ~200 samples should be doable?)
+% both graphs basically describe the same property but in different ways
+
+% should voltage and current be presented separetely? this implies 2x2 plots in total. that's reasonable.
 
 \section{Detection of partial shading}
 %TODO
@@ -495,6 +505,21 @@ Result chapter with results such as classification rate and various graphs.
 \section{Immediate failure detection}
 %TODO
 Discussion of how immediate failure detection performs.
+
+% The following should be placed into a cluster plot
+% (1) Faults actually found
+% (2) Faults not found
+% 
+% .. but all should be in category (2) if everything works (except limit cases).
+%
+%
+% better to focus on the two clusters formed at the limit.
+% i.e. use all but the 500-series to verify performance, but visualize using the 500.
+% actually, the others can be used as well.
+%
+% => interested in missclassification rate across the whole interval [0.5, 1]
+%    this should form a 2D-curve from 0 to 1
+%    need to discretize the data into bins and survey ratios of clusters in each bin.
 
 \section{Measuring degradation}
 %TODO

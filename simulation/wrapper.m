@@ -85,10 +85,6 @@ function f = wrapper(params)
   samples(:,1) = samples(:,1) ./ 72;
   samples(:,3) = samples(:,3) + 273.15; % + zeros(rows, 1);
 
-  % TODO: Need to experiment with different lower and upper bounds combined with restart.
-  %       Given stable method, consider a smaller set of samples.
-  %       Also; what about explicitly giving the derivatives?
-
   q   = 1.60 * 10^-19;
   k_b = 1.38 * 10^-23;
   f   = -samples(:,2) - i_sat .* exp(q .* (r_ser .* samples(:,2) + samples(:,1))./(k_b.*samples(:,3)) - 1) - (r_ser.*samples(:,2) + samples(:,1))./r_par + i_photo;

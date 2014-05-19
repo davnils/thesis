@@ -65,15 +65,20 @@ measureTimePeriod pool addr firstWindow secondWindow faultID firstFaultDay = do
   -- Produce degradation numbers for all solar panels, as averages of the saved values (if any)
   case convert res of
     []    -> return $ Nothing
-    xs    -> return $ Just (map (\(v1, v2) -> (average v1, average v2)) xs)
+    xs    -> do
+      let (v1, v2) = xs !! (addr - 1)
+      putStrLn $ "voltage ratios: " <> PL.unwords (map show v1) <>", current ratios: " <> PL.unwords (map show v2)
+      return $ Just (map (\(v1, v2) -> (average v1, average v2)) xs)
 
   where
   system = 1
   modules = 24
   allowedFailures = 1
 
+  -- threshold and epsilon
+  -- TODO: play around with the threshold. some values are evidently drawn at bad times, due to large differences.
   uParams = (20, 0.45)
-  iParams = (0.5, 0.2)
+  iParams = (6.0, 0.2)
   tParams = (-300, 1)
 
   convert :: [(x, (y, [b], [c]))] -> [([b], [c])]
@@ -99,12 +104,10 @@ measureTimePeriod pool addr firstWindow secondWindow faultID firstFaultDay = do
 
   -- need something like [V.Vec (U.Vec a)] -> V.Vec (U.Vec a)
   -- take each segment, append the subresult
-  --
   mergeTemp [x]    = x
   mergeTemp (x:xs) = V.map (\(v1, v2) -> v1 <> v2) $ V.zip subResult x
     where
     subResult = mergeTemp xs
-
 
 -- implement [V.Vec (U, U, ,U)] -> V.Vec (U, U, ,U) while maintaining constant outer dimension
 merge :: [V.Vector (U.Vector Float, U.Vector Float)] -> V.Vector (U.Vector Float, U.Vector Float)
