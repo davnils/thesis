@@ -39,7 +39,6 @@ type Triple = (U.Vector Float, U.Vector Float, U.Vector Float)
 -- | Provides the capability to locate a valid sample point, given two months to be compared.
 --   The returned indices refer to the sample position in the data series, from the perspective
 --   of a flattened vector containing the entire time series.
---
 measureTimePeriod :: DB.Pool -> Int -> Day -> Day -> Int -> Day -> IO (Maybe [(Float, Float)])
 measureTimePeriod pool addr firstWindow secondWindow faultID firstFaultDay = do
   [first, second] <- fmap force $ mapM (fetchMonth pool) [firstWindow, secondWindow]
@@ -68,7 +67,7 @@ measureTimePeriod pool addr firstWindow secondWindow faultID firstFaultDay = do
     xs    -> do
       let (v1, v2) = xs !! (addr - 1)
       putStrLn $ "voltage ratios: " <> PL.unwords (map show v1) <>", current ratios: " <> PL.unwords (map show v2)
-      return $ Just (map (\(v1, v2) -> (average v1, average v2)) xs)
+      return $ Just (map (\(v1, v2) -> (Measure.mean v1, Measure.mean v2)) xs)
 
   where
   system = 1
@@ -76,19 +75,16 @@ measureTimePeriod pool addr firstWindow secondWindow faultID firstFaultDay = do
   allowedFailures = 1
 
   -- threshold and epsilon
-  -- TODO: play around with the threshold. some values are evidently drawn at bad times, due to large differences.
   uParams = (20, 0.45)
-  iParams = (6.0, 0.2)
+  iParams = (4.0, 0.2)
   tParams = (-300, 1)
 
   convert :: [(x, (y, [b], [c]))] -> [([b], [c])]
+  convert []                          = []
   convert [(_, (_, volt, curr))]      = PL.map (\(u, i) -> ([u], [i])) $ PL.zip volt curr
   convert ((_, (_, volt, curr)) : xs) = map (\(u, i, (u', i')) -> (u : u', i : i')) $ PL.zip3 volt curr rest
     where
     rest = convert xs
-
-  average :: [Float] -> Float
-  average list = (1 / (realToFrac $ length list)) * sum list
 
   -- fetch month (voltage, current, temp) based on the first day
   fetchMonth :: DB.Pool -> Day -> IO (V.Vector Triple)
@@ -108,6 +104,18 @@ measureTimePeriod pool addr firstWindow secondWindow faultID firstFaultDay = do
   mergeTemp (x:xs) = V.map (\(v1, v2) -> v1 <> v2) $ V.zip subResult x
     where
     subResult = mergeTemp xs
+
+average :: [Float] -> Float
+average list = (1 / (realToFrac $ length list)) * sum list
+
+mean :: [Float] -> Float
+mean list = takeMiddle $ PL.sort list
+  where
+  takeMiddle list
+    | len `mod` 2 == 0 = ((list !! halfLen) + (list !! (halfLen + 1)))/2.0
+    | otherwise       = list !! halfLen
+  len = PL.length list
+  halfLen = truncate $ realToFrac len / 2.0
 
 -- implement [V.Vec (U, U, ,U)] -> V.Vec (U, U, ,U) while maintaining constant outer dimension
 merge :: [V.Vector (U.Vector Float, U.Vector Float)] -> V.Vector (U.Vector Float, U.Vector Float)
@@ -131,8 +139,10 @@ checkDegrad pool faultID = do
       (faultY, faultM, faultD) = toGregorian firstFaultDay
       makeDate y m             = if faultD == 1 then adjust y m else fromGregorian y  m 1
       adjust y m               = (\(y',m',_) -> fromGregorian y' m' 1) . toGregorian $ pred (fromGregorian y m 1)
-      firstDate                = makeDate faultY faultM
-      secondDate               = makeDate (faultY+1) faultM
+      firstDate                = makeDate faultY (faultM-1)
+      secondDate               = makeDate (faultY+1) (faultM-1)
+
+  if (faultM == 1) then putStrLn ">>>>>>>>>>>>>>>> skipping fault generated in january" else do
 
   putStr $ "("    <> show faultID
            <> " " <> show (system :: Int)

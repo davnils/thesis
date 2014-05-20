@@ -34,7 +34,7 @@ executable sim-driver
   other-modules: Classify, Fault, Generate, Measure, Reference, Retrieve, Storage
   build-depends:
     async,
-    ad,
+    ad == 3.4,
     base, 
     deepseq-generics,
     lens, 
