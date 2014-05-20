@@ -109,10 +109,11 @@ average :: [Float] -> Float
 average list = (1 / (realToFrac $ length list)) * sum list
 
 mean :: [Float] -> Float
+mean [] = error "error: calling mean on empty list"
 mean list = takeMiddle $ PL.sort list
   where
   takeMiddle list
-    | len `mod` 2 == 0 = ((list !! halfLen) + (list !! (halfLen + 1)))/2.0
+    | len `mod` 2 == 0 = ((list !! halfLen) + (list !! (halfLen - 1)))/2.0
     | otherwise       = list !! halfLen
   len = PL.length list
   halfLen = truncate $ realToFrac len / 2.0

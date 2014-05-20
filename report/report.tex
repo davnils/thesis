@@ -484,7 +484,6 @@ Describe alternative approach based on epsilon-close samples.
 Plot the corresponding precision plot.
 
 % build a N(x,y)-like graph over measured degradation in all non-faulty modules
-% interested in the error rate for the faulty ones.
 % each error can be seen as a scalar (real - estimate)
 % plot the distribution of these.
 % might need additional data, but the graph can be extended later (something like ~200 samples should be doable?)
@@ -498,6 +497,10 @@ Discussion on how partial shading detection was implemented.
 
 Discuss solar plane and auto correlation methods.
 
+% use the data sourced from the KTH system, detect faults, and run the clustering algorithm on the results
+% choose appropiate parameters as functions of the number of faults.
+% the resulting graph should show shading as clusters in the solar plane, possibly the coloured graph, but likely only the outlined version.
+
 \chapter{Results}
 %TODO
 Result chapter with results such as classification rate and various graphs.
@@ -505,6 +508,18 @@ Result chapter with results such as classification rate and various graphs.
 \section{Immediate failure detection}
 %TODO
 Discussion of how immediate failure detection performs.
+
+\begin{figure}[here]
+\centering
+\subimage{classification-voltage}{classification-voltage-plot}{TBD}{
+   TBD
+}{0.48}
+~
+\subimage{classification-current}{classification-voltage-plot}{TBD}{
+  TBD
+}{0.48}
+\caption[TBD summary]{\emph{TBD description}}
+\end{figure}
 
 % The following should be placed into a cluster plot
 % (1) Faults actually found
@@ -524,6 +539,7 @@ Discussion of how immediate failure detection performs.
 \section{Measuring degradation}
 %TODO
 Discussion of how degradation measurements perform.
+
 
 \section{Detection of partial shading}
 %TODO

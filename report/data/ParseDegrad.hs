@@ -37,4 +37,4 @@ main = do
     both = transpose . chunksOf 2 $ map read (drop 1 line2)
 
   getRatios (degrad, addr, vals) = take (addr - 1) vals <> drop addr vals
-  getError (degrad, addr, vals) = degrad - (vals !! addr)
+  getError (degrad, addr, vals) = degrad - (vals !! (addr - 1))
