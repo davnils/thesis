@@ -60,7 +60,7 @@ dbscan inputs eps minP = fmap select $ S.execStateT allClusters (HS.fromList al
     let newCluster = (region p `union` others) \\ (HM.keys m `union` [p])
     when (HS.member p u) $ mark p >> when (sufficientRegion p) (expandCluster newCluster)
 
-  mark node   = S.modify $ _1 print -- (HS.delete node)
+  mark node   = S.modify $ \(u, c, m) -> (HS.delete node u, c, m)
   assign node = S.modify $ \(u, c, m) -> (u, c, HM.insert node (Cluster c) m)
 
   region idx' = [idx | (idx, (px, py)) <- zip [0..] inputs, sqrt ((x - px)^2 + (y - py)^2) <= eps]

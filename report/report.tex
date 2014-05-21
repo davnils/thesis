@@ -497,7 +497,7 @@ Discussion on how partial shading detection was implemented.
 
 Discuss solar plane and auto correlation methods.
 
-% use the data sourced from the KTH system, detect faults, and run the clustering algorithm on the results
+% use data sourced from the KTH system, detect faults, and run the clustering algorithm on the results
 % choose appropiate parameters as functions of the number of faults.
 % the resulting graph should show shading as clusters in the solar plane, possibly the coloured graph, but likely only the outlined version.
 
@@ -520,21 +520,6 @@ Discussion of how immediate failure detection performs.
 }{0.48}
 \caption[TBD summary]{\emph{TBD description}}
 \end{figure}
-
-% The following should be placed into a cluster plot
-% (1) Faults actually found
-% (2) Faults not found
-% 
-% .. but all should be in category (2) if everything works (except limit cases).
-%
-%
-% better to focus on the two clusters formed at the limit.
-% i.e. use all but the 500-series to verify performance, but visualize using the 500.
-% actually, the others can be used as well.
-%
-% => interested in missclassification rate across the whole interval [0.5, 1]
-%    this should form a 2D-curve from 0 to 1
-%    need to discretize the data into bins and survey ratios of clusters in each bin.
 
 \section{Measuring degradation}
 %TODO
@@ -568,6 +553,25 @@ Discussion of how degradation measurements perform.
 \section{Detection of partial shading}
 %TODO
 Discussion of how partial shading classification performs.
+
+
+\begin{figure}[here]
+\centering
+\subimage{solar-plane-faults}{solar-plane-faults-plot}{TBD}{
+  % parameters used: epsilon 8, min pts 3, eucledian distance R^2
+  TBD
+}
+{0.48}
+~
+\subimage{kth-panels}{kth-panels-image}{TBD}{
+  TBD
+}{0.48}
+\caption[TBD summary]{\emph{TBD description}}
+\end{figure}
+
+\image{solar-plane}{solar-plane-plot}{TBD}{
+  TBD
+}
 
 \chapter{Conclusions}
 %TODO
