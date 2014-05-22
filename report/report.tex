@@ -422,8 +422,6 @@ The study makes an important remark regarding changing conditions during individ
 This is attributed to changing spectral conditions.
 
 \section{Summary}
-%TODO
-% {\color{red} This section will draw conclusions regarding the applicability of various methods to this specific study.}
 The constraints of thesis also affect the applicability of many of the previously mentioned methods.
 Firstly, the constraint of only having access to voltage, current, and low-precision temperature values restricts the immediate applicability of many methods.
 The lack of irradiance measurements contributes to a more general setting in the case of the one-diode model, since the $I_{photo}$ value needs to be considered unknown.
@@ -472,34 +470,118 @@ The procedures being applied on the data streams are described in the following 
 Discussion on how immediate failure detection was implemented, with some basic code constructs.
 
 Describe implementation of online algorithm.
-Discuss choice of threshold parameters.
+
+\begin{algorithm}
+\begin{algorithmic}
+\caption{Algorithm deciding vertex cover of size at most $k$}
+\label{fpt-vertex-cover}
+\Procedure{HasVertexCover}{$E,k$}\Comment{Can the edge set $E$ be covered using at most $k$ vertices?}
+\If {$E = \emptyset $}
+    \Return \texttt{True}
+\ElsIf {$k = 0$}
+    \Return \texttt{False}
+\EndIf
+
+\State $\left\{v_1, v_2\right\} \gets \texttt{Some edge in } E$
+
+\State $E'\gets \left\{ e \in E : v_1 \not \in e \right\}$
+\State $E''\gets \left\{ e \in E : v_2 \not \in e \right\}$
+
+\If {\Call{HasVertexCover}{$E', k - 1$}}
+    \Return \texttt{True}
+\ElsIf {\Call{HasVertexCover}{$E'', k - 1$}}
+    \Return \texttt{True}
+\Else {}
+    \Return \texttt{False}
+\EndIf
+
+\EndProcedure
+\end{algorithmic}
+\end{algorithm}
+
+Discuss choice of threshold parameters and how they were chosen for simulations.
 
 \section{Measuring degradation}
-%TODO
-Discussion on how degradation measurement was implemented.
+Degradation measurements are about quantifying the loss in performance over a given time period for solar panels.
+As concluded in the literature study, there are no feasible methods in the context of this project.
 
-Describe taking the approach of fitting data using one-diode model.
+\subsubsection{Theoretical model}
+One approach utilized in several studies is to fit solar panel parameters using an equivalent electrical method.
+The one-diode model can be applied onto measurements on the free variables in order to find the corresponding parameters.
+These variables are irradiation-induced current, panel voltage, temperature, and panel current.
+In order to apply this model to the context of this project, the loss of accurate temperature samples and inavailability of
+$I_{TODO}$ need to be taken into account.
+
+%TODO: describe evaluation
 Discuss difficulties relating to amount of data available, computation constraints.
-Describe alternative approach based on epsilon-close samples.
-Plot the corresponding precision plot.
 
-% build a N(x,y)-like graph over measured degradation in all non-faulty modules
-% each error can be seen as a scalar (real - estimate)
-% plot the distribution of these.
-% might need additional data, but the graph can be extended later (something like ~200 samples should be doable?)
-% both graphs basically describe the same property but in different ways
+\subsubsection{Alternative approach}
+Due to the negative results involving a theoretical model it was deemed suitable to study alternative approaches to measuring degradation.
+An alternative approach is to place focus on detecting differences in measurements, when comparing two different points in time of the same solar installation.
+Some of the studied paper in the background section included similar techniques where samples are taken only at known positions in time, for example at the peak of a bell curve.
+These do however require scaling or normalization based on unavailable parameters such as accurate panel temperature.
 
-% should voltage and current be presented separetely? this implies 2x2 plots in total. that's reasonable.
+A generalization is to base the selection criteria on overall similarity in the measured parameters.
+For example, consider the case of a solar installation being subject of nearly identical irradiation during two consecutive days.
+Given that environment temperature remains similar this will lead to very similar samples being taken along the curves of both days.
+The basic idea is then to generalize this concept to locating similar points in time and do a pairwise comparison in order to determine the amount of degradation that has occured.
+Note that this method is limited to only measuring relative degradation among panels, and accurate absolute measurements require that only a few panels are degraded.
+
+Formally, the method is outlined in the following algorithmic description.
+
+\begin{algorithm}
+\begin{algorithmic}
+\caption{Algorithm deciding vertex cover of size at most $k$}
+\label{fpt-vertex-cover}
+\Procedure{HasVertexCover}{$E,k$}\Comment{Can the edge set $E$ be covered using at most $k$ vertices?}
+\If {$E = \emptyset $}
+    \Return \texttt{True}
+\ElsIf {$k = 0$}
+    \Return \texttt{False}
+\EndIf
+
+\State $\left\{v_1, v_2\right\} \gets \texttt{Some edge in } E$
+
+\State $E'\gets \left\{ e \in E : v_1 \not \in e \right\}$
+\State $E''\gets \left\{ e \in E : v_2 \not \in e \right\}$
+
+\If {\Call{HasVertexCover}{$E', k - 1$}}
+    \Return \texttt{True}
+\ElsIf {\Call{HasVertexCover}{$E'', k - 1$}}
+    \Return \texttt{True}
+\Else {}
+    \Return \texttt{False}
+\EndIf
+
+\EndProcedure
+\end{algorithmic}
+\end{algorithm}
+
+It accepts two input dates, which determine the time period of interest.
+Each date describes the start of the corresponding month being sweeped for valid data points.
+The algorithm then locates any two points in time which do not differ to a large extent.
+This is defined as the voltage, current, and temperature taking values within specific threshold values.
 
 \section{Detection of partial shading}
 %TODO
 Discussion on how partial shading detection was implemented.
+Relate to previous results which consider failure frequency in the solar plane.
+Describe assumption of solar position being available, basically only requires the geographical position.
 
-Discuss solar plane and auto correlation methods.
+Discuss solar plane and clustering methods, mention method previously discussed.
+Describe DBSCAN - why it's a good fit and limitations.
+Decribe epsilon and minPts parameters.
+Relate to how these were chosen for experiments and suitable values in real life.
 
-% use data sourced from the KTH system, detect faults, and run the clustering algorithm on the results
-% choose appropiate parameters as functions of the number of faults.
-% the resulting graph should show shading as clusters in the solar plane, possibly the coloured graph, but likely only the outlined version.
+Discuss issues with detecting partial shading.
+
+Density plot:
+\image{solar-plane}{solar-plane-plot}{Solar plane density plot}{
+  Density plot in the solar plane showing that many paths occur close to the boundaries.
+}
+
+Discuss faults being detected first thing in the morning.
+Discuss consecutive days of low power implying the same behaviour.
 
 \chapter{Results}
 %TODO
@@ -512,13 +594,15 @@ Discussion of how immediate failure detection performs.
 \begin{figure}[here]
 \centering
 \subimage{classification-voltage}{classification-voltage-plot}{TBD}{
-   TBD
+  Decrease in voltage.
 }{0.48}
 ~
-\subimage{classification-current}{classification-voltage-plot}{TBD}{
-  TBD
+\subimage{classification-current}{classification-current-plot}{TBD}{
+  Decrease in current.
 }{0.48}
-\caption[TBD summary]{\emph{TBD description}}
+\caption[Immediate failure detection performance]{\emph{
+   Plots of successful classification ratio as a function of percentual decrease of the fault.
+}}
 \end{figure}
 
 \section{Measuring degradation}
@@ -529,49 +613,44 @@ Discussion of how degradation measurements perform.
 \begin{figure}[here]
 \centering
 \subimage{degrad-voltage-error}{degrad-voltage-error-plot}{TBD}{
-   TBD
+   Error in degradation measurement ratio for a faulty module.
 }{0.48}
 ~
 \subimage{degrad-voltage-ratio}{degrad-voltage-ratio-plot}{TBD}{
-  TBD
+  Degradation ratio measurement for a non-faulty module.
 }{0.48}
-\caption[TBD summary]{\emph{TBD description}}
+\caption[Performance of distance-based method (voltage)]{\emph{Degradation measurements applied on voltage samples.}}
 \end{figure}
 
 \begin{figure}[here]
 \centering
 \subimage{degrad-current-error}{degrad-current-error-plot}{TBD}{
-   TBD
+   Error in degradation measurement ratio for a faulty module.
 }{0.48}
 ~
 \subimage{degrad-current-ratio}{degrad-current-ratio-plot}{TBD}{
-  TBD
+  Degradation ratio measurement for a non-faulty module.
 }{0.48}
-\caption[TBD summary]{\emph{TBD description}}
+\caption[Performance of distance-based method (current)]{\emph{Degradation measurements applied on current samples.}}
 \end{figure}
 
 \section{Detection of partial shading}
 %TODO
 Discussion of how partial shading classification performs.
 
-
 \begin{figure}[here]
 \centering
 \subimage{solar-plane-faults}{solar-plane-faults-plot}{TBD}{
   % parameters used: epsilon 8, min pts 3, distance function: eucledian distance R^2
-  TBD
+  Plot of the solar plane with two coloured clusters of shading faults, and real faults marked with crosses.
 }
 {0.48}
 ~
 \subimage{kth-panels}{kth-panels-image}{TBD}{
-  TBD
+  16-panel Solar installation in Stockholm, Sweden, subject to partial shading.
 }{0.48}
-\caption[TBD summary]{\emph{TBD description}}
+\caption[Partial shading experiment]{\emph{Partial shading experiment applied on a real-world system.}}
 \end{figure}
-
-\image{solar-plane}{solar-plane-plot}{TBD}{
-  TBD
-}
 
 \chapter{Conclusions}
 %TODO
