@@ -14,7 +14,10 @@
 
 \chapter*{Preface}
 \addcontentsline{toc}{chapter}{Preface}
-\lipsum[1]
+This master's thesis has been carried out during the spring of 2014 at Optistring Technologies AB in Stockholm, Sweden.
+
+I would like to thank both of my advisors Anders Lindgren and Olov Engwall for their help throughout the project.
+In addition, I would like to thank Tomas Modéer for providing invaluable feedback.
 
 \printglossaries
 \cleardoublepage
@@ -471,33 +474,9 @@ Discussion on how immediate failure detection was implemented, with some basic c
 
 Describe implementation of online algorithm.
 
-\begin{algorithm}
-\begin{algorithmic}
-\caption{Algorithm deciding vertex cover of size at most $k$}
-\label{fpt-vertex-cover}
-\Procedure{HasVertexCover}{$E,k$}\Comment{Can the edge set $E$ be covered using at most $k$ vertices?}
-\If {$E = \emptyset $}
-    \Return \texttt{True}
-\ElsIf {$k = 0$}
-    \Return \texttt{False}
-\EndIf
-
-\State $\left\{v_1, v_2\right\} \gets \texttt{Some edge in } E$
-
-\State $E'\gets \left\{ e \in E : v_1 \not \in e \right\}$
-\State $E''\gets \left\{ e \in E : v_2 \not \in e \right\}$
-
-\If {\Call{HasVertexCover}{$E', k - 1$}}
-    \Return \texttt{True}
-\ElsIf {\Call{HasVertexCover}{$E'', k - 1$}}
-    \Return \texttt{True}
-\Else {}
-    \Return \texttt{False}
-\EndIf
-
-\EndProcedure
-\end{algorithmic}
-\end{algorithm}
+\begin{verbatim}
+TODO: kod här
+\end{verbatim}
 
 Discuss choice of threshold parameters and how they were chosen for simulations.
 
@@ -510,10 +489,21 @@ One approach utilized in several studies is to fit solar panel parameters using 
 The one-diode model can be applied onto measurements on the free variables in order to find the corresponding parameters.
 These variables are irradiation-induced current, panel voltage, temperature, and panel current.
 In order to apply this model to the context of this project, the loss of accurate temperature samples and inavailability of
-$I_{TODO}$ need to be taken into account.
+$I_{photo}$ need to be taken into account.
 
-%TODO: describe evaluation
-Discuss difficulties relating to amount of data available, computation constraints.
+Evaluation of this method was done by performing a model fit given one day's worth of data from a single panel.
+In order to handle the missing $I_{photo}$ samples, it was assumed that this value was constant, known as $k$.
+This implies that $k$ becomes a new variable in the model which needs to be solved for.
+In addition, all input temperature measurements were of the actual panel temperature.
+The results will then only establish a upper bound in performance for this method.
+
+The resulting model together with the measurements of voltage, current, and panel temperature, were then used to estimate parameters.
+This regression can be evaluated using some non-linear regression algorithm.
+MATLAB implements Trust-Region-Reflective optimization \footnote{http://www.mathworks.se/help/optim/ug/lsqnonlin.html} which is the only algorithm to support bounded variables, i.e. some variable in the model is restricted to only take on values within a certain interval.
+Several runs were evaluated this method together with bounded variable intervals established in the project constraints.
+This resulted in a wide of range of local minima i.e. no true set of assignments were found to the solar panel parameters.
+
+Due to the difficulties in non-linear regression and computational constraints, this method was concluded to not be applicable.
 
 \subsubsection{Alternative approach}
 Due to the negative results involving a theoretical model it was deemed suitable to study alternative approaches to measuring degradation.
@@ -524,72 +514,82 @@ These do however require scaling or normalization based on unavailable parameter
 A generalization is to base the selection criteria on overall similarity in the measured parameters.
 For example, consider the case of a solar installation being subject of nearly identical irradiation during two consecutive days.
 Given that environment temperature remains similar this will lead to very similar samples being taken along the curves of both days.
-The basic idea is then to generalize this concept to locating similar points in time and do a pairwise comparison in order to determine the amount of degradation that has occured.
+The basic idea is then to generalize this concept to locating similar points in time and do a pairwise comparison in order to determine the amount of degradation that has occurred.
 Note that this method is limited to only measuring relative degradation among panels, and accurate absolute measurements require that only a few panels are degraded.
 
 Formally, the method is outlined in the following algorithmic description.
 
-\begin{algorithm}
-\begin{algorithmic}
-\caption{Algorithm deciding vertex cover of size at most $k$}
-\label{fpt-vertex-cover}
-\Procedure{HasVertexCover}{$E,k$}\Comment{Can the edge set $E$ be covered using at most $k$ vertices?}
-\If {$E = \emptyset $}
-    \Return \texttt{True}
-\ElsIf {$k = 0$}
-    \Return \texttt{False}
-\EndIf
+\begin{verbatim}
+TODO: kod här
+\end{verbatim}
 
-\State $\left\{v_1, v_2\right\} \gets \texttt{Some edge in } E$
-
-\State $E'\gets \left\{ e \in E : v_1 \not \in e \right\}$
-\State $E''\gets \left\{ e \in E : v_2 \not \in e \right\}$
-
-\If {\Call{HasVertexCover}{$E', k - 1$}}
-    \Return \texttt{True}
-\ElsIf {\Call{HasVertexCover}{$E'', k - 1$}}
-    \Return \texttt{True}
-\Else {}
-    \Return \texttt{False}
-\EndIf
-
-\EndProcedure
-\end{algorithmic}
-\end{algorithm}
-
-It accepts two input dates, which determine the time period of interest.
+It accepts two input dates, which determine the time periods of interest.
 Each date describes the start of the corresponding month being sweeped for valid data points.
-The algorithm then locates any two points in time which do not differ to a large extent.
+The algorithm then locates any two data points in time which do not differ to a large extent.
 This is defined as the voltage, current, and temperature taking values within specific threshold values.
 
+The algorithm outlined above results in a vector of matching positions in time.
+These are associated with underlying differences in voltage and current.
+In order to produce stable degradation measurements, all of the samples are averaged, producing the final estimation.
+
+\clearpage
 \section{Detection of partial shading}
-%TODO
-Discussion on how partial shading detection was implemented.
-Relate to previous results which consider failure frequency in the solar plane.
-Describe assumption of solar position being available, basically only requires the geographical position.
+Partial shading of solar panels occur when some obstruction limits the amount of irradiance received by the solar panels.
+One method was suggested by the literature study, based on measuring the failure frequency in segments in the solar plane.
 
-Discuss solar plane and clustering methods, mention method previously discussed.
-Describe DBSCAN - why it's a good fit and limitations.
-Decribe epsilon and minPts parameters.
-Relate to how these were chosen for experiments and suitable values in real life.
+The fundamental approach of making observations in the solar plane is reasonable since shading is likely to be correlated with the sun position.
+A similar approach has been taken in this project.
+Using the immediate failure detection routine outlined above, any faults occurring in an installation can be recorded over time.
+By using the geographical position of the installation, and the timestamp of the fault, the corresponding solar position can be derived.
+The solar position is typically given as two angles known as azimuth and zenith.
+An example of the solar plane is shown in figure \ref{fig:solar-plane-plot}.
 
-Discuss issues with detecting partial shading.
-
-Density plot:
 \image{solar-plane}{solar-plane-plot}{Solar plane density plot}{
-  Density plot in the solar plane showing that many paths occur close to the boundaries.
+  Density plot of the solar plane with brighter areas having more occurrences.
 }
 
-Discuss faults being detected first thing in the morning.
-Discuss consecutive days of low power implying the same behaviour.
+The figure has been created by plotting all solar paths during a year of operation of a system in Stockholm, Sweden.
+Brighter areas have a higher density of solar panels.
+Hence this figure demonstrates a non-uniform distribution of paths in the solar plane.
+
+Given the positions of all faults in the solar plane it is then of interest to partition them into real faults and partial shading occurrences.
+The approach taking here is study clusters of faults.
+By the previous argument it is reasonable that clustered indications were caused by the same shading.
+In order to identify clusters it is suitable to use a clustering algorithm.
+The DBSCAN algorithm \cite{Birant2007} is capable of locating clusters in a set of data points.
+Its application to this study is motivated by the fact that it is capable of finding non-convex clusters, which may occur in the solar plane.
+DBSCAN accepts two input parameters and the input vector of positions in $R^2$.
+The first one is $\epsilon$ which describes the minimum distance between to points in the same cluster.
+The second one is $minPts$, the minimum number of points in some cluster.
+All points that are not found to be part of any clusters are classified as noise.
+
+Using DBSCAN as a clustering algorithm implies a new problem, namely parameter selection.
+Due to the nature of clustering there is not a given set of parameters that fit all problems.
+In this study it was found that $\epsilon = 10$ and $minPts = 5$ were suitable for a window of 5 days.
+These values are however likely to be dependent on system configurations and specific installations.
+In a real-world installation these issues can be dealt with by establishing a baseline of fault frequencies.
+This would require an initial period were only shading occurred.
+The parameters would then be set in such a way that all points belong to some cluster.
+
+There are however some inherent issues with detecting partial shading.
+Firstly, real faults may be mistakenly be classified to belong to a cluster of shading faults.
+Another issue is that there is a non-uniform distribution of faults in the solar plane.
+Since the underlying failure detection algorithm will only report failures during non-negligible periods
+of irradiance, there will be a bias with more faults during the morning.
+Finally, as demonstrated by figure \ref{fig:solar-plane-plot}, the non-uniform distribution of solar paths imply that 
+faults are more likely to be clustered along the outer edges.
 
 \chapter{Results}
-%TODO
-Result chapter with results such as classification rate and various graphs.
+This chapter describes the results retrieved using the implemented methods.
 
 \section{Immediate failure detection}
-%TODO
-Discussion of how immediate failure detection performs.
+Immediate failure detection was implemented using the algorithm previously described.
+Using the simulation framework, the implementation was evaluated over a wide range of system configurations.
+A total of 50 different installations were randomly generated and 2000 faults were injected into these.
+Each fault consists of a gradual percentual degradation in both current and voltage, and may occur during periods of no irradiance.
+
+The classification performance can then be derived by detecting the subset of faults that properly recognised using the algorithm.
+It should also be mentioned that no false-positives (non-faulty panel being classified as faulty) were recorded using the parameters previously discussed.
 
 \begin{figure}[here]
 \centering
@@ -605,11 +605,15 @@ Discussion of how immediate failure detection performs.
 }}
 \end{figure}
 
-\section{Measuring degradation}
 %TODO
-Discussion of how degradation measurements perform.
 
-\subsection{Epsilon method}
+\section{Measuring degradation}
+Degradation measurements were implemented using the method of finding similar data points in time.
+The resulting data points consists of percentual changes in voltage and current for all panels within the installation.
+These are visualized in the following figures, where voltage and current have been considered in isolation.
+
+%TODO
+
 \begin{figure}[here]
 \centering
 \subimage{degrad-voltage-error}{degrad-voltage-error-plot}{TBD}{
@@ -621,6 +625,8 @@ Discussion of how degradation measurements perform.
 }{0.48}
 \caption[Performance of distance-based method (voltage)]{\emph{Degradation measurements applied on voltage samples.}}
 \end{figure}
+
+%TODO
 
 \begin{figure}[here]
 \centering
@@ -635,8 +641,15 @@ Discussion of how degradation measurements perform.
 \end{figure}
 
 \section{Detection of partial shading}
-%TODO
-Discussion of how partial shading classification performs.
+In order to verify the performance of using DBSCAN to locate partial shading, it was required to generate representative real-life data.
+An experiment was carried out were a small piece of cardboard was placed onto a single cell of a panel.
+This piece was then gradually sweeped along 4 panels during a time period of 40 minutes.
+The system being surveyed had a total of 16 panels, as can be seen in figure \ref{fig:kth-panels-image}
+
+The resulting data consists of multiple faults being observed during the shading.
+Additionally a few days worth of data was extracted in order to study these faults in the context of the real system.
+This process revealed some other issues during periods of low irradiance.
+The final solar plane plot with clusters can be seen in figure \ref{fig:solar-plane-faults-plot}.
 
 \begin{figure}[here]
 \centering
@@ -653,11 +666,49 @@ Discussion of how partial shading classification performs.
 \end{figure}
 
 \chapter{Conclusions}
-%TODO
-General conclusions on the results and how they fit into todays industry and state-of-the-art research.
-Reflect on each of the three categories separately.
-Discussion on simulation vs real-life PV installations.
-Discussion on future work.
+This study has focused on three main areas associated with locating faults in solar panels.
+Fault detection is important since solar panel installations have been shown to be susceptible to a wide range of fault conditions.
+It is also motivated by the fact that 24/7 automated surveillance reduces the time from a fault occurring to replacement of the faulty solar panel.
+
+The main constraints have been to only study measurements of voltage and current, with additional access to low-resolution temperatures.
+Based on the literature having been surveyed, this situation presents new challenges in detecting faults.
+Results and algorithms from previous studies have been modified to fit into these unique constraints.
+In addition, some new methods and approaches have been suggested and evaluated.
+These are discussed more in detail in the following sections.
+
+\section{Immediate failure detection}
+Immediate failure detection has been approached by developing a new method based on similarity measures within a single installation.
+It is based on the fact a single solar panel deviating from all others indicates an issue.
+This method performs well and is capable of detecting all faults where a degradation of at least 5-6 percent is seen in either voltage or current.
+
+\section{Degradation measurement}
+Degradation measurements have been implemented by developing a new method based on exploiting similarities over time.
+The degradation that has occurred during a given time period can be found given initial assumptions.
+In order for the method to produce measurements it is required that both time points share voltage, current, and temperature profiles.
+This means that the environmental conditions are repeated.
+
+The method solves the problem by locating these similar time periods and comparing the degradation ratio of some given measurement, either voltage or current.
+Given that some panel is faulty it will indicate a performance degradation in the corresponding measurement.
+
+It was found that this method reliably produces results within $4\%$ for faulty panels, and $6\%$ for non-faulty panels.
+Notably it was observed that degradation measurements on voltage samples have smaller errors, compared to current measurements.
+
+\section{Detection of partial shading}
+Detection of partial shading has been implemented as a procedure operating on the output of immediate fault detection.
+The purpose is to partition faults into the categories: partial shading and real panel fault.
+This has been achieved by working under the assumption that partial shading occurs as clusters in the solar plane.
+
+In order to locate these clusters of faults, it was preferable to utilize a clustering algorithm with support for this type of data.
+The choice fell on DBSCAN which is a very general method for finding clusters within a data set.
+
+DBSCAN was evaluated over an experimentally generated data set of faults.
+The results demonstrate that the cluster of shading faults was successfully found, but also demonstrates the need for application-specific tuning.
+Classification performance is heavily dependent on the parameters used by DBSCAN.
+These can be empirically evaluated if a baseline dataset of fault frequencies exist, but the problem remains open in general.
+One possible approach would be to have an interactive interface were missclassification can be corrected manually, and the parameters being adjusted appropriately.
+
+In conclusion it can be said that clustering algorithms give a wide range of possibilities.
+Still future research remains into developing methods for choosing parameters based on available datasets.
 
 \bibliographystyle{abbrv}
 \bibliography{../ref.bib}
