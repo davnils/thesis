@@ -499,7 +499,7 @@ The results will then only establish a upper bound in performance for this metho
 
 The resulting model together with the measurements of voltage, current, and panel temperature, were then used to estimate parameters.
 This regression can be evaluated using some non-linear regression algorithm.
-MATLAB implements Trust-Region-Reflective optimization \footnote{http://www.mathworks.se/help/optim/ug/lsqnonlin.html} which is the only algorithm to support bounded variables, i.e. some variable in the model is restricted to only take on values within a certain interval.
+MATLAB implements \emph{Trust-Region-Reflective optimization} \footnote{http://www.mathworks.se/help/optim/ug/lsqnonlin.html} which is the only algorithm to support bounded variables, i.e. some variable in the model is restricted to only take on values within a certain interval.
 Several runs were evaluated this method together with bounded variable intervals established in the project constraints.
 This resulted in a wide of range of local minima i.e. no true set of assignments were found to the solar panel parameters.
 
@@ -507,8 +507,8 @@ Due to the difficulties in non-linear regression and computational constraints, 
 
 \subsubsection{Alternative approach}
 Due to the negative results involving a theoretical model it was deemed suitable to study alternative approaches to measuring degradation.
-An alternative approach is to place focus on detecting differences in measurements, when comparing two different points in time of the same solar installation.
-Some of the studied paper in the background section included similar techniques where samples are taken only at known positions in time, for example at the peak of a bell curve.
+Such an approach is to place focus on detecting differences in measurements, when comparing two different points in time of the same solar installation.
+Some of the studied papers in the background section included similar techniques where samples are taken only at known positions in time, for example at the peak of a bell curve.
 These do however require scaling or normalization based on unavailable parameters such as accurate panel temperature.
 
 A generalization is to base the selection criteria on overall similarity in the measured parameters.
@@ -519,18 +519,53 @@ Note that this method is limited to only measuring relative degradation among pa
 
 Formally, the method is outlined in the following algorithmic description.
 
+\begin{figure}[H]
 \begin{verbatim}
-TODO: kod här
-\end{verbatim}
+# Count the number of valid panel samples at two points fixed in time
+countValid(s1, s2, n):
+  valid = 0
+  for panel = 1..n
+    if(|s1[panel].voltage - s2[panel].voltage|         <= VOLTAGE_EPSILON &&
+       |s1[panel].current - s2[panel].current|         <= CURRENT_EPSILON &&
+       |s1[panel].temperature - s2[panel].temperature| <= TEMP_EPSILON
+      )
+      valid = valid + 1
 
-It accepts two input dates, which determine the time periods of interest.
-Each date describes the start of the corresponding month being sweeped for valid data points.
+  return valid
+
+# Locate all valid pairs of samples
+locateSamples(firstDay, lastDay, n, k):
+  % retrieve two months worth of vector, current, and temperature vectors
+  first <- fetchMonth()
+  last <- fetchMonth()
+  results = {}
+
+  for s1 in first
+    for s2 in last
+      if countValid(s1, s2, n) >= n - k
+        results.add((s1, s2))
+
+  return results
+\end{verbatim}
+\end{figure}
+
+The function \emph{locateSamples} accepts two input dates, which determine the time periods of interest.
+Each date describes the start of the corresponding month being swept for valid data points.
+The final two parameters are the number of solar panels $n$ and the maximum number of faulty panels $k$.
 The algorithm then locates any two data points in time which do not differ to a large extent.
 This is defined as the voltage, current, and temperature taking values within specific threshold values.
+These threshold values are denoted \emph{VOLTAGE\_EPSILON}, \emph{CURRENT\_EPSILON}, and \emph{TEMP\_EPSILON}.
 
-The algorithm outlined above results in a vector of matching positions in time.
-These are associated with underlying differences in voltage and current.
-In order to produce stable degradation measurements, all of the samples are averaged, producing the final estimation.
+The output from the algorithm above is a vector of pairs that describe matching positions in time.
+Hence the this vector can be analyzed in order to draw conclusions regarding changes in the measurements taken.
+In order to produce stable degradation measurements it is suitable to average all of registered samples.
+
+The threshold values affect the precision in the returned samples.
+Smaller threshold values will produce more accurate comparisons but has the inherent limitation of limiting the number of data points retrieved, eventually resulting in no data points.
+Larger values are needed during time periods where solar irradiance and panel temperature varies to a larger extent, limiting the usefulness of this method in those situations.
+
+The maximum number of faulty panels, $k$, should be set relatively small since larger values increases the probability of noisy data producing valid pairs.
+This also implies a restriction in usefulness since only a limited number of degradations can be measured.
 
 \clearpage
 \section{Detection of partial shading}
