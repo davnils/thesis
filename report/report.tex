@@ -794,16 +794,29 @@ This study has focused on three main areas associated with locating faults in so
 Fault detection is important since solar panel installations have been shown to be susceptible to a wide range of fault conditions.
 It is also motivated by the fact that 24/7 automated surveillance can reduce the time from a fault occurring to replacement of the faulty solar panel.
 
-The main constraints have been to only study measurements of voltage and current, with additional access to low-resolution temperatures.
+The main constraints have been to only study measurements of voltage and current, with additional access to indirect low-resolution temperatures.
 Based on the literature having been surveyed, this situation presents new challenges in detecting faults.
+This follows since other studies typically have access to both solar irradiation data and temperature measurements taken on the solar panel.
 Results and algorithms from previous studies have been modified to fit into these unique constraints.
 In addition, some new methods and approaches have been suggested and evaluated.
 These are discussed more in detail in the following sections.
 
 \section{Immediate failure detection}
-Immediate failure detection has been approached by developing a new method based on similarity measures within a single installation.
+Immediate failure detection is the problem of detecting losses in solar panel current or voltage that occur during a short period of time.
+These faults may occur due to wide range of reasons, based on the studied literature.
+This problem has been approached by developing a new method based on similarity measures within a single installation.
 It is based on the fact a single solar panel deviating from all others indicates an issue.
-This method performs well and is capable of detecting all faults where a degradation of at least 5-6 percent is seen in either voltage or current.
+A limitation of this method include that only a single panel fault can be detected at each point time.
+
+The performance of this method was evaluated using a simulation that produces faults injected into a wide range of different system configurations, including different solar panel parameters.
+In general it performs well and is capable of detecting all faults where a degradation of at least 5-6 percent is seen in either voltage or current.
+These results were achieved by restricting the parameter of the method to yield no false-positives, i.e. valid measurements being classified as faults.
+
+what about application to real-world installations?
+
+what about trade-offs in the parameter?
+
+what about future work / improvements?
 
 \section{Degradation measurement}
 Degradation measurements have been implemented by developing a new method based on exploiting similarities over time.
