@@ -2,26 +2,36 @@
 \input{misc.tex}
 
 \title{Fault detection in photovoltaic systems}
-\author{David Nilsson, davnils@kth.se}
+\author{David Nilsson}
 
-\input{glossary.tex}
+\date{May 2014}
+\blurb{Master's Thesis at CSC\\Supervisor: Olov Engwall, KTH\\Examiner: Olle Bälter, KTH}
+\trita{TRITA xxx yyyy-nn}
+
 \begin{document}
-\pagenumbering{gobble}
+\frontmatter
+\pagestyle{empty}
 \maketitle
+\selectlanguage{english}
+
 \input{abstract.tex}
 
-\tableofcontents
+\clearpage
+\tableofcontents*
+\mainmatter
+%\pagestyle{newchap}
+\pagenumbering{gobble}
 
 \chapter*{Preface}
 \addcontentsline{toc}{chapter}{Preface}
 This master's thesis has been carried out during the spring of 2014 at Optistring Technologies AB in Stockholm, Sweden.
-
 I would like to thank both of my advisors Anders Lindgren and Olov Engwall for their help throughout the project.
 In addition, I would like to thank Tomas Modéer for providing invaluable feedback.
+Finally I truly appreciate all support and feedback from the thesis group and colleagues at the company.
 
 \printglossaries
 \cleardoublepage
-\addcontentsline{toc}{chapter}{\listfigurename}
+%\addcontentsline{toc}{chapter}{\listfigurename}
 \listoffigures
 \clearpage
 \pagenumbering{arabic}
@@ -55,6 +65,7 @@ Can potential faults in a solar panel, in the context of installations with the 
 This includes the capability of differentiating panel faults from partial shading of the panel.
 The problem is how to perform detection efficiently in the presence of different system configurations, but also geographic and thermal dependencies, since all systems deliver different power curves.
 
+\newpage
 \subsection*{Constraints}
 The most important scope limitation is that systems should only be studied passively, i.e. the available measurements are used to detect faulty panels.  
 Some technical constraints are present as well:
@@ -102,6 +113,16 @@ This implies a reduction in risk of fire hazards~\cite{Zhao2010night} which may 
 Thirdly, there is a reduction in labor required for the equivalent amount of monitoring.
 The final product should send alerts upon recognizing faulty panels, bypassing any manual supervision of the systems.
 In the long term this implies more cost-effective installations and improved sustainability for photovoltaic systems.
+
+\section{Methodology}
+The scientific question is answered in this thesis by implementing algorithmic solutions to all the three subproblems in isolation.
+This approach was taken since an empirical evaluation, subject to the unique constraints in this thesis, is the only way of surveying actual performance and applicability of different methods.
+As an example of this, it is important to understand the effects of constraining the available set of measurements.
+The evaluation is done by implementing a simulation framework, which is discussed in detail in the implementation chapter.
+
+There is also a part consisting of a literature study.
+This provides a deeper understanding of the field and results in a set of suitable implementation choices.
+In addition, it results in a study which can be understood in the context of current research and extended upon in the future.
 
 \chapter{Background}
 This chapter introduces the concept of solar cells, including the underlying physics,
@@ -870,5 +891,4 @@ Future research remains into developing methods for choosing parameters based on
 
 \bibliographystyle{abbrv}
 \bibliography{../ref.bib}
-
 \end{document}
