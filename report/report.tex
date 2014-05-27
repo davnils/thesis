@@ -466,8 +466,8 @@ Repeating this process over many different systems with different configuration 
 The procedures being applied on the data streams are described in the following sections.
 
 \section{Immediate failure detection}
-Immediate failure detection is about detecting fast degradation occuring in solar panels.
-This invovles both analysis of current and voltage components, motivated by the different effects being observed, as discussed in the literature study.
+Immediate failure detection is about detecting fast degradation occurring in solar panels.
+This involves both analysis of current and voltage components, motivated by the different effects being observed, as discussed in the literature study.
 
 In this study the individual solar panels within a single installation may have different characteristics and the number of panels varies as well.
 This implies that the simply comparing individual panels within a system will not produce meaningful results, since large differences may correspond to the expected case during normal operation.
@@ -477,7 +477,7 @@ The approach taken in this study is to process individual solar panel measuremen
 This iterative procedure compares differences between solar panel outputs within the system and large differences indicate that a fault has been discovered.
 
 The first step of this computation is to do preprocessing of the raw measurements.
-This whole process is repeated separetely with current and voltage vectors.
+This whole process is repeated separately with current and voltage vectors.
 Since there are natural variations between solar panels within a single installation, it is of interest to remove differences to ease classification of the output data.
 The approach taken here is to subtract the mean and scale measurements with a measure of standard deviation.
 
@@ -498,8 +498,8 @@ scale(matrix):
 As outline above, this process is performed over a matrix where each row corresponds to a measurement vector of a single solar panel.
 Each entry is adjusted by using the corresponding column of samples corresponding to a specific point in time.
 
-The next step of the algorithm is to filter out data series having only low irradiance.
-This occurs naturally during the night, but also samples taken during periods of very low output power are ignored.
+The next step of the algorithm is to filter the data series, only keeping samples taken during high irradiance.
+This occurs naturally during the night, but also ignores samples taken during periods of very low output power.
 
 \begin{figure}[H]
 \begin{verbatim}
@@ -520,10 +520,10 @@ chunkSamples(scaled, power):
 \end{figure}
 
 The algorithm outlined above takes as input measurements from a single solar panel, with the first argument being either a current or voltage vector, and the second being the output power.
-Evaluating this results in a list of consecutive periods of singificant output power, each of which can be analyzed in isolation.
+Evaluating this results in a list of consecutive periods of significant output power, each of which can be analyzed in isolation.
 The constant \emph{POWER\_THRESHOLD} should be chosen accordingly, typically to about $50 W$.
 
-Using these continous series of samples it is possible to define the main routine which is responsible of detecting faults.
+Using these continuous series of samples it is possible to define the main routine which is responsible of detecting faults.
 Given that faults may occur during periods of no irradiance there is a need to connect the analysis between isolated segments.
 This is done by maintaining a \emph{reference window} which corresponds to the last valid point of data.
 During the first segment this window is initialized in a special way.
@@ -545,13 +545,14 @@ processPanel(scaled, window):
       faults.add(idx)
 
     window = newRef
+    idx = idx + 1
 
   return faults
 \end{verbatim}
 \end{figure}
 
-The function outlined above is responsible of locating any faults associated with a given panel during one segment of continous measurements.
-Using the previously scaled and chunked vector, \emph{processPanel} is called repeatedely on these inputs in order to gather all the located faults.
+The function outlined above is responsible of locating any faults associated with a given panel during one segment of continuous measurements.
+Using the previously scaled and chunked vector, \emph{processPanel} is called repeatedly on these inputs in order to gather all the located faults.
 This routine performs the actual detection by comparing the reference window with a new sample window in order to detect large differences.
 The code requires a function \emph{average} which computes the mean of its argument, and a function \emph{slice} which extracts the subvector indicated by the given indices.
 Note the usage of two constants \emph{EPSILON} and \emph{WINDOW\_SIZE}.
@@ -567,7 +568,7 @@ As concluded in the literature study, there are no feasible methods in the conte
 One approach utilized in several studies is to fit solar panel parameters using an equivalent electrical method.
 The one-diode model can be applied onto measurements on the free variables in order to find the corresponding parameters.
 These variables are irradiation-induced current, panel voltage, temperature, and panel current.
-In order to apply this model to the context of this project, the loss of accurate temperature samples and inavailability of
+In order to apply this model to the context of this project, the loss of accurate temperature samples and unavailability of
 $I_{photo}$ need to be taken into account.
 
 Evaluation of this method was done by performing a model fit given one day's worth of data from a single panel.
@@ -793,6 +794,7 @@ This experiment demonstrates that unrelated faults may be clustered together and
 This study has focused on three main areas associated with locating faults in solar panels.
 Fault detection is important since solar panel installations have been shown to be susceptible to a wide range of fault conditions.
 It is also motivated by the fact that 24/7 automated surveillance can reduce the time from a fault occurring to replacement of the faulty solar panel.
+There is also a real-world need for fault detection since studies have concluded that faults may have a significant effect on power production.
 
 The main constraints have been to only study measurements of voltage and current, with additional access to indirect low-resolution temperatures.
 Based on the literature having been surveyed, this situation presents new challenges in detecting faults.
@@ -811,41 +813,60 @@ A limitation of this method include that only a single panel fault can be detect
 The performance of this method was evaluated using a simulation that produces faults injected into a wide range of different system configurations, including different solar panel parameters.
 In general it performs well and is capable of detecting all faults where a degradation of at least 5-6 percent is seen in either voltage or current.
 These results were achieved by restricting the parameter of the method to yield no false-positives, i.e. valid measurements being classified as faults.
+In the context of this parameter there are certainly trade-offs that can be made.
+As an example it would be possible to detect less significant faults by allowing a certain amount of false positives.
 
-what about application to real-world installations?
+Given that the evaluation was performed across a wide range of system configurations and solar panel parameters, this result should be applicable to real-world installations.
+The method is computationally efficient since the complexity remains constant in the number of samples requires.
+This implies that an embedded implementation could be developed, which would be placed at the solar installation site.
+Since there is no dependence on external information such as solar position this would be applicable also to sites without network connection.
 
-what about trade-offs in the parameter?
-
-what about future work / improvements?
+Future work could include improving the sensitivity to less significant faults.
+More advanced statistical methods and hypothesis testing using confidence interval could possibly improve the performance.
 
 \section{Degradation measurement}
+Measuring degradation is about quantifying the loss in performance of solar panels over time.
 Degradation measurements have been implemented by developing a new method based on exploiting similarities over time.
-The degradation that has occurred during a given time period can be found given initial assumptions.
-In order for the method to produce measurements it is required that both time points share voltage, current, and temperature profiles.
-This means that the environmental conditions are repeated.
+The degradation of a solar panel during a given time period can be found given certain assumptions.
+In order for the method to produce measurements it is required that both time points being compared share voltage, current, and temperature profiles.
+This implies that the environmental conditions need to be repeated to a certain degree.
 
-The method solves the problem by locating these similar time periods and comparing the degradation ratio of some given measurement, either voltage or current.
-Given that some panel is faulty it will indicate a performance degradation in the corresponding measurement.
+The implemented method solves the problem by locating similar time periods.
+This followed by calculating the degradation ratio in both voltage and current samples respectively.
+Given that some panel is faulty this will indicate a performance degradation in the corresponding measurement, given that the degradation is significant.
 
 It was found that this method reliably produces results within $4\%$ for faulty panels, and $6\%$ for non-faulty panels.
 Notably it was observed that degradation measurements on voltage samples have smaller errors, compared to current measurements.
+Hence it can be concluded that there is a balance between the amount degradation that is reliably detectable and the amount of valid points.
+
+One problem with this method is that reliable classification relies on multiple valid samples being registered at different points in time.
+This is needed in order to reduce the influence of noise in the resulting degradation quantification.
+
+Part of this study also included surveying the applicability of fitting a theoretical model using samples of the free variables.
+Using an equivalent electrical circuit known as the one-diode model, these variables can be used as the basis of non-linear regression.
+This can be used in order to extract the parameters of the solar panel, and the corresponding values can be inspected in order to detect significant changes.
+It was concluded that the applicability of this method to this study is very limited, due to limited availability of additional data sources.
+
+Future work includes generalizing the developed methods in order to improve degradation measurements and relax constraints imposed by repeating environmental conditions.
 
 \section{Detection of partial shading}
+Partial shading occurs when some obstruction limits the amount of solar irradiance reaching a solar panel.
+It is of interest to detect in order to modify the environment of a solar installation and also quantify losses that are inherent to the setup.
 Detection of partial shading has been implemented as a procedure operating on the output of immediate fault detection.
 The purpose is to partition faults into the categories: partial shading and real panel fault.
 This has been achieved by working under the assumption that partial shading occurs as clusters in the solar plane.
 
-In order to locate these clusters of faults, it was preferable to utilize a clustering algorithm with support for this type of data.
-The choice fell on DBSCAN which is a very general method for finding clusters within a data set.
+In order to locate these clusters of faults, it was preferable to utilize a clustering algorithm with support for clusters of any shape.
+The choice fell on DBSCAN which is a very general method for finding clusters within a data set, capable of also locating non-convex clusters.
 
 DBSCAN was evaluated over an experimentally generated data set of faults.
 The results demonstrate that the cluster of shading faults was successfully found, but also demonstrates the need for application-specific tuning.
-Classification performance is heavily dependent on the parameters used by DBSCAN.
+Classification performance is also heavily dependent on the parameters used by DBSCAN.
 These can be empirically evaluated if a baseline dataset of fault frequencies exist, but the problem remains open in general.
-One possible approach would be to have an interactive interface were missclassification can be corrected manually, and the parameters being adjusted appropriately.
+One possible approach would be to have an interactive interface where misclassifications can be corrected manually, and the parameters being adjusted appropriately.
 
-In conclusion it can be said that clustering algorithms give a wide range of possibilities.
-Still future research remains into developing methods for choosing parameters based on available datasets.
+In conclusion it can be said that clustering algorithms give a wide range of possibilities but also bring a new set of problems in choosing parameters.
+Future research remains into developing methods for choosing parameters based on available datasets.
 
 \bibliographystyle{abbrv}
 \bibliography{../ref.bib}
