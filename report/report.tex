@@ -14,7 +14,7 @@
 \maketitle
 \selectlanguage{english}
 
-\input{abstract-diff.tex}
+\input{abstract.tex}
 
 \clearpage
 \tableofcontents*
@@ -37,7 +37,7 @@ Finally I truly appreciate all support and feedback from the thesis group and co
 
 \chapter{Introduction}
 This chapter introduces the purpose of this thesis and gives a general outline of photovoltaic systems and failure detection.
-The scope and constraints are described and put into the context of the field of PV (photovoltaic) power electronics, i.e. power generation based on the sun as the energy source.
+The scope and constraints are described and put into the context of the field of photovoltaic power electronics, i.e. power generation based on the sun as the energy source.
 
 \section{Photovoltaic power generation}
 Power generation based on photovoltaic sources has gradually become an increasingly larger source of power generation during the last few decades~\cite{Zhao2010thesis}.
@@ -62,7 +62,8 @@ The purpose of this thesis is to study and develop new methods for fault detecti
 \subsection*{Problem statement}
 Can potential faults in a solar panel, in the context of installations with the specified properties, be detected by studying the available measurements?
 This includes the capability of differentiating panel faults from partial shading of the panel.
-The problem is how to perform detection efficiently in the presence of different system configurations, but also geographic and thermal dependencies, since all systems deliver different power curves.
+In addition to simply detecting faults it is also of interest to measure the amount of degradation that has occurred in a solar panel over a given period of time.
+The problem is how to solve these problems efficiently in the presence of different system configurations, but also geographic and thermal dependencies, since all systems deliver different power curves.
 
 \newpage
 \subsection*{Constraints}
@@ -116,9 +117,11 @@ In the long term this implies more cost-effective installations and improved sus
 
 \section{Methodology}
 The scientific question is answered in this thesis by implementing algorithmic solutions to all the three subproblems in isolation.
-This approach was taken since an empirical evaluation, subject to the unique constraints in this thesis, is the only way of surveying actual performance and applicability of different methods.
+This approach was taken since an empirical evaluation, subject to the constraints in this thesis, is the only way of surveying actual performance and applicability of different methods.
 As an example of this, it is important to understand the effects of constraining the available set of measurements.
-The evaluation is done by implementing a simulation framework, which is discussed in detail in the implementation chapter.
+In addition to performing an evaluation based on simulated data it is also suitable to use real-life measurements when possible.
+This is done within the context of this thesis when evaluating the performance of partial shading detection.
+In all other cases, the evaluation is done by implementing a simulation framework, which is discussed in detail in the implementation chapter.
 
 There is also a part consisting of a literature study.
 This provides a deeper understanding of the field and results in a set of suitable implementation choices.
@@ -336,7 +339,7 @@ These effects are however very dependent on the geographical position and the ph
 
 A study \cite{Munoz2011} found that early degradation occurs due to wide variety for reasons.
 The paper ties the measured degradation rates to a specific allowance, based on guarantees from the manufacturer.
-It discusses a typical guarantee of $90\%$ over 10-15 years and $80\%$ over 20-25 years with preserved nominal power.
+It discusses a typical guarantee of $90\%$ over 10-15 years and $80\%$ over 20-25 years in preserved nominal power.
 
 Meyer and Dyk~\cite{Meyer2004} note that degradation in the anti-reflective coating results in a brightening in the color of the cell.
 It can also be detected in the module's maximum attainable voltage and current.
@@ -470,11 +473,13 @@ A central part of this thesis has been to develop a simulation framework in orde
 This is necessary since an algorithmic approach to e.g. fault detection needs to be evaluated under real life conditions.
 It is also important to take different system characteristics and system configurations into account when presenting classification results.
 
-% TODO Refactor description on data generation and enhance ENHANCE ENHAAAAAAAANCE
 The implemented simulation framework consists of several parts.
 It is implemented as a driver program which interfaces towards a database, either generating data or fetching data for e.g. classification purposes.
 Data generation has been implemented based on real life measurements of yearly irradiance and temperature values gathered at a location in Stockholm, Sweden.
-These inputs are used together with the parameters of a solar installation in order to generate a resulting series of voltage, current, and temperature values at 5 minute intervals.
+These inputs are used together with the parameters of all panels in a solar installation.
+The corresponding power curve is generated using the previously discussed one-diode model.
+The resulting voltage and current curves are stored together with the input temperature vector.
+All of these samples are taken at 5-minute intervals which also matches the sample rate used in the studied inverters.
 
 The second part of the data generation is injecting faults into outputs from solar installations.
 This has been implemented as a fault occurring at some fixed point in time, with an independent percentage loss in voltage and current.
@@ -586,6 +591,7 @@ These correspond to the sensitivity to noise and the tolerance to fast changes i
 Typically a reasonable value of 16 was found for the window size, given that samples are taken at 5-minute intervals.
 The other parameter required empirical testing in order to extract a reasonable value, which is discussed more in depth in the results section.
 
+\newpage
 \section{Measuring degradation}
 Degradation measurements are about quantifying the loss in performance over a given time period for solar panels.
 As concluded in the literature study, there are no feasible methods in the context of this project.
@@ -614,7 +620,7 @@ Due to the difficulties in non-linear regression and computational constraints, 
 \subsubsection{Alternative approach}
 Due to the negative results involving a theoretical model it was deemed suitable to study alternative approaches to measuring degradation.
 Such an approach is to place focus on detecting differences in measurements, when comparing two different points in time of the same solar installation.
-Some of the studied papers in the background section included similar techniques where samples are taken only at known positions in time, for example at the peak of a normal distribution.
+Some of the studied papers in the background section included similar techniques where samples are taken only at known positions in time, for example at the peak of a bell curve.
 These do however require scaling or normalization based on unavailable parameters such as accurate panel temperature.
 
 A generalization is to base the selection criteria on overall similarity in the measured parameters.
@@ -711,7 +717,7 @@ These values are however likely to be dependent on system configurations and spe
 In a real-world installation these issues can be dealt with by establishing a baseline of fault frequencies.
 This would require an initial period were only shading occurred.
 The parameters would then be set in such a way that all points belong to some cluster.
-An alternative approach would be to limit the method to the cases where several years worth of fault occurrences have been recorded.
+An alternative approach would be to limit the method to the case where several years worth of fault occurrences has been recorded.
 Given that the baseline of real faults is sufficiently low it would then be possible to locate all major clusters.
 
 There are however some inherent issues with detecting partial shading.
@@ -758,6 +764,7 @@ These are visualized in the following figures, where voltage and current have be
 Note that the error plots in figure \ref{fig:degrad-voltage-error-plot} and \ref{fig:degrad-current-error-plot} describe the distance between the measured degradation percentage and the actual fault percentage.
 
 It is also of interest to study the measured degradation ratio in non-faulty panel, which should be close to 1.
+Recall that this ratio is defined as the ratio of both measurements, taken at two different points in time.
 These measures are visualized in figure \ref{fig:degrad-voltage-ratio-plot} and \ref{fig:degrad-current-ratio-plot} for voltage and current respectively.
 
 \begin{figure}[here]
@@ -800,9 +807,13 @@ The clustering was done using DBSCAN with parameters $\epsilon = 8$ and $minPts
 As can be seen in the plot, there were two clusters being identified among the data points.
 The cluster located at approximately 200 degrees azimuth corresponds to the partial shading experiment.
 This experiment demonstrates that unrelated faults may be clustered together and be considered partial shading as well, since the other cluster was not due to shading.
+The set of points marked with crosses were labeled as noise by the clustering algorithm and hence considered real faults.
 
 Note that the use of a small piece of cardboard corresponds to a specific kind of shading.
 Other types of shading should still be detected in the same manner, since any significant shading results in an indication from the immediate failure detection procedure.
+
+It is also important to note that clusters may occur in different shapes than line segments.
+These are still detected by the DBSCAN algorithm since it internally uses a symmetric Euclidean distance measure.
 
 \begin{figure}[here]
 \centering
