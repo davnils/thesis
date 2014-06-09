@@ -14,7 +14,7 @@
 \maketitle
 \selectlanguage{english}
 
-\input{abstract.tex}
+\input{abstract-diff.tex}
 
 \clearpage
 \tableofcontents*
@@ -47,7 +47,7 @@ In addition to research into solar panels there is also an established interest 
 
 Part of these systems are power inverters converting dc energy from the solar panels to the ac grid output.
 The efficiency concerns of solar panels naturally extend throughout the system, since any losses will affect the final efficiency of the complete system.
-Recently the area of PV inverters has progressed to distributed systems of inverters where a small inverter module is connected to every panel~\cite{Roman2006}.
+Recently the area of photovoltaic (PV) inverters has progressed to distributed systems of inverters where a small inverter module is connected to every panel~\cite{Roman2006}.
 This is beneficial since each panel can be optimized locally, thereby increasing the energy harvest.
 In addition to increased efficiency this also allows individual measurements of solar panels.
 
@@ -72,8 +72,8 @@ Some technical constraints are present as well:
 \item The solar panels have 60 or 72 cells built of mono- or poly-crystalline silicon
 \item The installations have 14 to 24 panels connected within a small geographic area
 \item The available measurements (from each panel) are:
-$U$ \footnote{Panel voltage at an optimal load},
-$I$ \footnote{Panel current at an optimal load} and
+$U$ \footnote{Panel voltage measured continuously at an optimal load},
+$I$ \footnote{Panel current measured continuously at an optimal load} and
 $T_{module}$ \footnote{Low resolution temperature measurement from within the PV inverter}.
 
 \end{itemize}
@@ -84,10 +84,11 @@ Due to time constraints, the simulation of solar panels has been largely based o
 These are used as a basis of generating approximate individual panel curves, limiting the amount of effort required.
 
 The supervising company provides data feeds providing real time measurements of several PV installations in Sweden.
-This data is accumulated in a central database for further analysis.
-This data has been used in order to verify real-life performance of the classification system, primarily to verify that working systems are not classified as faulty.
+This data is accumulated in a central database for further analysis and
+can be used in order to verify real-life performance of a classification system, primarily to verify that working systems are not classified as faulty.
 
 Additionally there are other sources that can be used to build realistic simulation models, such as measured solar energy over several years.
+In the context of this thesis it has been assumed that access to irradiance data is available for a specific solar installation.
 
 \section{Intended readers}
 The main target audience interested in this thesis are companies building products in the field of PV power electronics.
@@ -100,14 +101,14 @@ Some basic knowledge of physics and electronic circuits is needed as well in ord
 \section{Sustainability considerations}
 From a societal perspective this thesis has mainly a positive impact in three different ways.
 
-The first main improvement is increased efficiency due to faulty solar panels being replaced sooner.
+The first main improvement is increased efficiency since faulty solar panels are detected and can be be replaced sooner.
 This improvement has a direct benefit in total produced power.
 Studies have shown there is a significant power loss due to faults in solar panels.
 For example a study conducted in Britain concluded losses upwards $18.9\%$ during the first year of operation~\cite{Firth2010}.
 Even though such losses would not be completely eliminated, it is reasonable to conclude that more efficient and reliable detection routines results in faster replacement of faulty panels.
 
 Secondly, early detection of faulty panels results in fewer faulty panels being present in installations.
-This implies a reduction in risk of fire hazards~\cite{Zhao2010night} which may affect both personnel and installed equipment.
+This results in a reduction in risk of fire hazards~\cite{Zhao2010night} which may affect both personnel and installed equipment.
 
 Thirdly, there is a reduction in labor required for the equivalent amount of monitoring.
 The final product should send alerts upon recognizing faulty panels, bypassing any manual supervision of the systems.
@@ -200,8 +201,8 @@ Firstly the output current is proportional to the incoming irradiance, which dir
 Figure $\ref{fig:trina-iv-curve}$ shows a plot of $I_{load}$ as a function of $U_{load}$ at different irradiations.
 The panel is held at a constant temperature.
 
-\image{trina-60cell-iv-alpha.png}{trina-iv-curve}{Solar panel IV-curve characteristic}{
-  Typical IV-curve of a solar panel. Note the non-linear relationship between voltage and current, and the effect of solar irradiation on output current.
+\image{trina-60cell-iv-alpha.png}{trina-iv-curve}{Solar panel I-V curve characteristic}{
+  Typical I-V curve of a solar panel. Note the non-linear relationship between voltage and current, and the effect of solar irradiation on output current.
 }
 
 In addition to changing irradiation there might also be a range of operating temperatures depending on local weather conditions.
@@ -239,7 +240,7 @@ It is however not suitable for generation on the electric grid which uses ac pow
 This conversion is done using a power inverter, also known as PV inverter.
 There are different topologies applicable, i.e. different arrangements of both solar panels and PV inverters.
 Traditionally a common configuration has been to use long strings of modules connected in series with a single big inverter at the end of the string.
-This approach is however constrained due to individual modules having an unproportional influence on the total power yield of the string~\cite{Roman2006}.
+This approach is, however, constrained due to individual modules having an unproportional influence on the total power yield of the string~\cite{Roman2006}.
 
 \image{optistring-inverter.jpg}{optistring-inverter}{Optistring PV inverter}{
   The distributed Optistring PV inverter with dc input and ac output.
@@ -252,9 +253,8 @@ In addition to providing higher efficiency, this also produces $I_{load}$ and $
 This is highly relevant since studies in fault detection typically consider a specific topology and the results might not always generalize to the distributed case.
 
 A PV inverter should transform the power in the most efficient way and more specifically ensure that the panel is being applied to an optimal load.
-This corresponds to finding the point on the I-V curve where $I_{load} \cdot U_{load}$ is maximal.
-This maximum power point (MPP) is typically found using methods that search along the I-V curve.
-Examples include Pertube and Observe and Incremental Conductance~\cite{Roman2006}.
+This corresponds to finding the point on the I-V curve where $I_{load} \cdot U_{load}$ is maximal, which is known as the maximum power point (MPP).
+Examples of search methods include Pertube and Observe and Incremental Conductance~\cite{Roman2006}.
 These are relevant to this study since local searches may not be well-behaved during panel faults~\cite{Roman2006}.
 This is due to the existence of multiple local maxima on the I-V curve, resulting in the possibility of considering a local optima as a global maxima.
 Previous studies have also found that MPP tracking (MPPT) might prevent faults from being observed during night-to-day transitions~\cite{Zhao2010night}.
@@ -284,7 +284,7 @@ Another interesting aspect of these graphs is the significant amount of noise pr
 
 After sunset and during periods of negligible irradiance the system is completely shutdown.
 This is done in order to reduce power consumption and thereby increase overall efficiency.
-In addition to seasonal and geographical dependencies, the power output is also proportional to the number of solar panels in the system and the type of each panel.
+In addition to seasonal and geographical dependencies, the power output is also proportional to the number of solar panels in the system and affected by the type of each panel.
 All of these highly varying conditions impose restrictions on how fault detection can be implemented and the required scope of validation.
 The main point is that developed methods need to be dynamic and adaptive to any applicable system configuration.
 
@@ -336,7 +336,7 @@ These effects are however very dependent on the geographical position and the ph
 
 A study \cite{Munoz2011} found that early degradation occurs due to wide variety for reasons.
 The paper ties the measured degradation rates to a specific allowance, based on guarantees from the manufacturer.
-It discusses a typical guarantee of $90\%$ over 10-15 years and $80\%$ over 20-25 years in preserved nominal power.
+It discusses a typical guarantee of $90\%$ over 10-15 years and $80\%$ over 20-25 years with preserved nominal power.
 
 Meyer and Dyk~\cite{Meyer2004} note that degradation in the anti-reflective coating results in a brightening in the color of the cell.
 It can also be detected in the module's maximum attainable voltage and current.
@@ -346,21 +346,21 @@ The first is an increase in series resistance, the second is a decrease in the p
 Concrete percentual figures of degradation have also been studied~\cite{Quintana2002}, which cites a degradation rate of about $0.7\%$ per year for multi-crystalline modules.
 There is also a note on that the system may continue to operate in degraded conditions without causing an intermediate failure.
 The paper also describes a condition known as \emph{light induced degradation} (LID) which is a module degradation
-that occurs during the first few hours of sunlight exposure.
+that occurs once during the first few hours of sunlight exposure.
 It is stated that at most a $5\%$ degradation in maximum attainable current has been observed.
 
 \section{Partial shading of solar panels}
 Partial shading occurs when a subset of the PV array is shaded to some degree.
 This occurs naturally for example due to passing clouds.
 Nearby obstacles might also interfere and cast shadows, resulting in reduced power output.
-Hence shading conditions is a relevant aspect when planning a PV installation.
+Hence, shading conditions is a relevant aspect when planning a PV installation.
 Due to the nature of the resulting power reduction it is also relevant to classify power output into either the case of partial shading or faulty panels.
 
 Some studies, e.g. \cite{Stettler2005}, view partial shading as another failure condition.
 This somewhat simpler view does not require partial shading to be separated from for example faulty solar panels.
 
 Partial shading has been studied in isolation \cite{Alsayid2013}.
-The paper illustrates the effect of bypass diodes triggered due to shadow conditions, resulting in non-smooth IV-curves with different characteristics.
+The paper illustrates the effect of bypass diodes triggered due to shadow conditions, resulting in non-smooth I-V curves with different characteristics.
 However, it does not describe suitable classification attributes or relate shading to fault conditions.
 The results are also heavily dependent on the panel topology and placement of bypass diodes.
 
@@ -377,19 +377,19 @@ A basic approach to detecting unexpected power loss is comparing the output with
 The approach taken in~\cite{Stettler2005} is to perform monitoring using satellites, essentially building up known weather conditions.
 This approach is not applicable to this study due to insufficient weather data available.
 
-An extension to this method is building an analytical model \cite{Chouder2010,Raina2013,Chao2008}
+An extension of this method is building an analytical model \cite{Chouder2010,Raina2013,Chao2008}
 based on the one-diode model introduced previously (equation \ref{eq:eq-circuit}).
 All parameters are retrieved from the manufacturers datasheet or through parameter extraction \cite{Eicker2005,Chouder2009,Walker2001}.
 This method relies on access to both irradiance and solar panel temperature measurements in order to calculate the reference MPP.
 This is then compared to the measured working point as previously discussed.
 
-An active approach is described in \cite{Meyer2004}, where the whole IV-curve is studied for defects, and the maximum attainable $U_{max}$ and $I_{max}$ are recorded over time.
-Due to the nature of sweeping IV-curves this implies that this gives a reduction in power output during the analysis.
+An active approach is described in \cite{Meyer2004}, where the whole I-V curve is studied for defects, and the maximum attainable $U_{max}$ and $I_{max}$ are recorded over time.
+Due to the nature of sweeping I-V curves this implies that this gives a reduction in power output during the analysis.
 In addition it is not applicable to passive studies of systems since they can be assumed to deliver output at MPP.
 
-Two studies by Vergura et al.~\cite{Vergura2008,Vergura2009} consider several identical PV string and compares the outputs in order to classify significant deviations.
+Two studies by Vergura et al.~\cite{Vergura2008,Vergura2009} consider several identical PV strings and compare the outputs in order to classify significant deviations.
 This is done by checking if certain statistical assumptions can be made, formally that the power differences are independently normally distributed with identical variance.
-If this is the case a method known as analysis of variance (ANOVA)~\cite{Vergura2009} can be applied in order to build confidence interval for the power output of each PV string.
+If this is the case, a method known as analysis of variance (ANOVA)~\cite{Vergura2009} can be applied in order to build confidence interval for the power output of each PV string.
 Otherwise the Kurskal-Wallis test~\cite{Vergura2009} is applied in order to build the corresponding intervals.
 The resulting confidence intervals can be studied for significant deviations which would imply defect solar modules.
 While not being directly applicable to this study, the papers remain relevant due to the basic assumption of only having access to power measurements.
@@ -397,7 +397,7 @@ While not being directly applicable to this study, the papers remain relevant du
 Another statistical approach is taken by Zhao~\cite{Zhao2013outlier} that is centered around outlier detection.
 Similarly to \cite{Vergura2008,Vergura2009}, the Zhao paper assumes a set of identical PV strings and tries to classify deviations.
 This is done by building confidence intervals using three different methods: 3-Sigma rule, Hampel identifier, and Boxplot rule.
-All of the surveyed methods exhibit different properties but the paper concludes that the Hampel identifier and Boxplot rule are suitable for fault detection.
+All of the surveyed methods exhibit different properties, but the paper concludes that the Hampel identifier and Boxplot rule are suitable for fault detection.
 Based on the assumptions made, the paper can consider all PV string currents as samples taken from a single normal distribution, allowing straight-forward statistical analysis.
 This simplification is however not directly applicable to this study.
 
@@ -445,7 +445,7 @@ The study makes an important remark regarding changing conditions during individ
 This is attributed to changing spectral conditions.
 
 \section{Summary}
-The constraints of thesis also affect the applicability of many of the previously mentioned methods.
+The constraints of this thesis also affect the applicability of many of the previously mentioned methods.
 Firstly, the constraint of only having access to voltage, current, and low-precision temperature values restricts the immediate applicability of many methods.
 The lack of irradiance measurements contributes to a more general setting in the case of the one-diode model, since the $I_{photo}$ value needs to be considered unknown.
 Since the temperature is not measured at the PN-junction, the corresponding term in the one-diode model needs to be modelled as an expression of the actual measured value.
@@ -467,9 +467,10 @@ Each section is described separately with algorithmic outlines and general comme
 
 \section{Simulation framework}
 A central part of this thesis has been to develop a simulation framework in order to study the different problems in various aspects.
-This is necessary since a algorithmic approach to e.g. fault detection needs to be evaluated under real life conditions.
+This is necessary since an algorithmic approach to e.g. fault detection needs to be evaluated under real life conditions.
 It is also important to take different system characteristics and system configurations into account when presenting classification results.
 
+% TODO Refactor description on data generation and enhance ENHANCE ENHAAAAAAAANCE
 The implemented simulation framework consists of several parts.
 It is implemented as a driver program which interfaces towards a database, either generating data or fetching data for e.g. classification purposes.
 Data generation has been implemented based on real life measurements of yearly irradiance and temperature values gathered at a location in Stockholm, Sweden.
@@ -482,7 +483,7 @@ These faults may also occur during night or during low irradiance conditions, as
 The generated data has then been used in order to determine classification performance.
 This has been implemented as some external procedure receiving input measurements from a whole installation over time.
 Hence this approach reflects real life use cases where online classification is performed.
-Repeating this process over many different systems with different configuration results in statistically significant results, applicable to systems concerned in this thesis.
+Repeating this process over many different systems with different configurations results in statistically significant results, applicable to systems concerned in this thesis.
 The procedures being applied on the data streams are described in the following sections.
 
 \section{Immediate failure detection}
@@ -490,13 +491,18 @@ Immediate failure detection is about detecting fast degradation occurring in sol
 This involves both analysis of current and voltage components, motivated by the different effects being observed, as discussed in the literature study.
 
 In this study the individual solar panels within a single installation may have different characteristics and the number of panels varies as well.
-This implies that the simply comparing individual panels within a system will not produce meaningful results, since large differences may correspond to the expected case during normal operation.
+This implies that simply comparing individual panels within a system will not produce meaningful results, since large differences may correspond to the expected case during normal operation.
 
 These properties motivate the use of a more generalized algorithm capable of handling these differences while still detecting faults reliably.
 The approach taken in this study is to process individual solar panel measurement vectors, followed by iterating over increasing points in time.
 This iterative procedure compares differences between solar panel outputs within the system and large differences indicate that a fault has been discovered.
 
-The first step of this computation is to do preprocessing of the raw measurements.
+This solution to immediate failure detection was chosen in order to capture the fundamental aspect of comparing differences within a single installation.
+Processing samples by iterating in time allows an online-style implementation which takes as input the latest measurements and decides if a fault is found, repeatedly.
+The functions outlined in the upcoming sections do not employ any kind of hypothesis testing which would potentially result in better accuracy.
+Instead the focus was on developing the fundamentals of immediate failure detection, allowing future work to be focused on these improvements.
+
+The first step of the computation is to do preprocessing of the raw measurements.
 This whole process is repeated separately with current and voltage vectors.
 Since there are natural variations between solar panels within a single installation, it is of interest to remove differences to ease classification of the output data.
 The approach taken here is to subtract the mean and scale measurements with a measure of standard deviation.
@@ -515,11 +521,11 @@ scale(matrix):
 \end{verbatim}
 \end{figure}
 
-As outline above, this process is performed over a matrix where each row corresponds to a measurement vector of a single solar panel.
+As outlined above, this process is performed over a matrix where each row corresponds to a measurement vector of a single solar panel.
 Each entry is adjusted by using the corresponding column of samples corresponding to a specific point in time.
 
 The next step of the algorithm is to filter the data series, only keeping samples taken during high irradiance.
-This occurs naturally during the night, but also ignores samples taken during periods of very low output power.
+Samples taken during the night are naturally ignored, but this also applies to samples taken during periods of very low output power.
 
 \begin{figure}[H]
 \begin{verbatim}
@@ -575,7 +581,7 @@ The function outlined above is responsible of locating any faults associated wit
 Using the previously scaled and chunked vector, \emph{processPanel} is called repeatedly on these inputs in order to gather all the located faults.
 This routine performs the actual detection by comparing the reference window with a new sample window in order to detect large differences.
 The code requires a function \emph{average} which computes the mean of its argument, and a function \emph{slice} which extracts the subvector indicated by the given indices.
-Note the usage of two constants \emph{EPSILON} and \emph{WINDOW\_SIZE}.
+Note the use of two constants \emph{EPSILON} and \emph{WINDOW\_SIZE}.
 These correspond to the sensitivity to noise and the tolerance to fast changes in power output.
 Typically a reasonable value of 16 was found for the window size, given that samples are taken at 5-minute intervals.
 The other parameter required empirical testing in order to extract a reasonable value, which is discussed more in depth in the results section.
@@ -600,15 +606,15 @@ The results will then only establish a upper bound in performance for this metho
 The resulting model together with the measurements of voltage, current, and panel temperature, were then used to estimate parameters.
 This regression can be evaluated using some non-linear regression algorithm.
 MATLAB implements \emph{Trust-Region-Reflective optimization} \footnote{http://www.mathworks.se/help/optim/ug/lsqnonlin.html} which is the only algorithm to support bounded variables, i.e. some variable in the model is restricted to only take on values within a certain interval.
-Several runs were evaluated this method together with bounded variable intervals established in the project constraints.
-This resulted in a wide of range of local minima i.e. no true set of assignments were found to the solar panel parameters.
+Several runs were performed in order to evaluate this method together with bounded variable intervals established in the project constraints.
+This resulted in a wide range of local minima i.e. no true set of assignments were found to the solar panel parameters.
 
 Due to the difficulties in non-linear regression and computational constraints, this method was concluded to not be applicable.
 
 \subsubsection{Alternative approach}
 Due to the negative results involving a theoretical model it was deemed suitable to study alternative approaches to measuring degradation.
 Such an approach is to place focus on detecting differences in measurements, when comparing two different points in time of the same solar installation.
-Some of the studied papers in the background section included similar techniques where samples are taken only at known positions in time, for example at the peak of a bell curve.
+Some of the studied papers in the background section included similar techniques where samples are taken only at known positions in time, for example at the peak of a normal distribution.
 These do however require scaling or normalization based on unavailable parameters such as accurate panel temperature.
 
 A generalization is to base the selection criteria on overall similarity in the measured parameters.
@@ -680,11 +686,11 @@ The solar position is typically given as two angles known as azimuth and zenith.
 An example of the solar plane is shown in figure \ref{fig:solar-plane-plot}.
 
 \image{solar-plane}{solar-plane-plot}{Solar plane density plot}{
-  Density plot of the solar plane with brighter areas having more occurrences.
+  Density plot of the solar plane during one year with brighter areas having more occurrences.
 }
 
 The figure has been created by plotting all solar paths during a year of operation of a system in Stockholm, Sweden.
-Brighter areas have a higher density of solar panels.
+Brighter areas have a higher density solar occurrences.
 Hence this figure demonstrates a non-uniform distribution of paths in the solar plane.
 
 Given the positions of all faults in the solar plane it is then of interest to partition them into real faults and partial shading occurrences.
@@ -705,9 +711,11 @@ These values are however likely to be dependent on system configurations and spe
 In a real-world installation these issues can be dealt with by establishing a baseline of fault frequencies.
 This would require an initial period were only shading occurred.
 The parameters would then be set in such a way that all points belong to some cluster.
+An alternative approach would be to limit the method to the cases where several years worth of fault occurrences have been recorded.
+Given that the baseline of real faults is sufficiently low it would then be possible to locate all major clusters.
 
 There are however some inherent issues with detecting partial shading.
-Firstly, real faults may be mistakenly be classified to belong to a cluster of shading faults.
+Firstly, real faults may mistakenly be classified to belong to a cluster of shading faults.
 Another issue is that there is a non-uniform distribution of faults in the solar plane.
 Since the underlying failure detection algorithm will only report failures during non-negligible periods
 of irradiance, there will be a bias with more faults during the morning.
@@ -781,7 +789,7 @@ These measures are visualized in figure \ref{fig:degrad-voltage-ratio-plot} and 
 In order to verify the performance of using DBSCAN to locate instances of partial shading, it was required to generate representative real-life data.
 An experiment was carried out were a small piece of cardboard was placed onto a single cell of a panel.
 This piece was then gradually moved along 4 panels during a time period of 40 minutes.
-The system being surveyed had a total of 16 panels, as can be seen in figure \ref{fig:kth-panels-image}
+The system being surveyed had a total of 16 panels, as can be seen in figure \ref{fig:kth-panels-image}.
 
 The resulting data consists of multiple faults being observed during the period of shading.
 Additionally a few days worth of data was extracted in order to study these faults in the context of the real system.
@@ -792,6 +800,9 @@ The clustering was done using DBSCAN with parameters $\epsilon = 8$ and $minPts
 As can be seen in the plot, there were two clusters being identified among the data points.
 The cluster located at approximately 200 degrees azimuth corresponds to the partial shading experiment.
 This experiment demonstrates that unrelated faults may be clustered together and be considered partial shading as well, since the other cluster was not due to shading.
+
+Note that the use of a small piece of cardboard corresponds to a specific kind of shading.
+Other types of shading should still be detected in the same manner, since any significant shading results in an indication from the immediate failure detection procedure.
 
 \begin{figure}[here]
 \centering

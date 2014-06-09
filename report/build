@@ -5,6 +5,7 @@ FILEC=${FILE}.tex
 FILET=${FILE}-diff.tex
 FILEA=${FILE}.aux
 
+latexdiff --flatten abstract-old.tex abstract.tex > abstract-diff.tex
 latexdiff --flatten $FILEO $FILEC > $FILET
 
 latex $FILET
