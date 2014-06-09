@@ -1,7 +1,12 @@
 #!/bin/bash
 FILE=report
-FILET=${FILE}.tex
+FILEO=${FILE}-old.tex
+FILEC=${FILE}.tex
+FILET=${FILE}-diff.tex
 FILEA=${FILE}.aux
+
+latexdiff --flatten $FILEO $FILEC > $FILET
+
 latex $FILET
 bibtex $FILEA
 makeglossaries $FILE
