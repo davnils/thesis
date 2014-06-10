@@ -1,4 +1,10 @@
 #!/bin/bash
+
+# check for:
+# (1) repeated words: \<\(\w\+\)\s\+\1\>
+# (2) spelling
+# (3) grammar, java -jar languagetool-commandline.jar -d WHITESPACE_RULE,COMMA_PARENTHESIS_WHITESPACE ../out > dmp
+
 FILE=report
 FILET=${FILE}.tex
 FILEA=${FILE}.aux

@@ -13,4 +13,4 @@ The second problem concerns measuring degradation over time.
 A modified approach is taken based on repetitive conditions, and performs well given certain assumptions.
 Finally the third problem is to differentiate solar panel faults from partial shading.
 Here a clustering algorithm DBSCAN is applied on data in order to locate clusters of faults in the solar plane, demonstrating good performance in certain situations.
-It also demonstrates issues with missclassification of real faults due to clustering.
+It also demonstrates issues with misclassification of real faults due to clustering.
