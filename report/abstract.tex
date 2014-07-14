@@ -1,13 +1,13 @@
 \newenvironment{abstractpage}
   {\cleardoublepage\vspace*{\fill}\thispagestyle{empty}}
   {\vfill\cleardoublepage}
-\newenvironment{polyAbstract}[1]
+\newenvironment{polyAbstract}[2]
   {\bigskip\selectlanguage{#1}%
-   \begin{center}\bfseries\abstractname\end{center}}
+   \begin{center}\bfseries \abstractname {#2}\end{center}}
   {\par\bigskip}
 
 \begin{abstractpage}
-\begin{polyAbstract}{english}
+\begin{polyAbstract}{english}{}
 This master's thesis concerns three different areas in the field of fault detection in photovoltaic systems.
 Previous studies have concerned homogeneous systems with a large set of parameters being observed, while this study is focused on a more restrictive case.
 The first problem is to discover immediate faults occurring in solar panels.
@@ -21,7 +21,7 @@ It also demonstrates issues with misclassification of real faults due to cluster
 
 \end{polyAbstract}
 
-\begin{polyAbstract}{swedish}
+\begin{polyAbstract}{swedish}{: Feldetektering av fotovoltaiska system}
 Det här är en uppsats på masternivå om feldetektering av fotovoltaiska system.
 Tidigare studier har fokuserat på homogena system med fler observerade parametrar, vilket generaliseras i den här studien.
 Den första delen är feldetektering av snabba felförlopp i solpaneler.
