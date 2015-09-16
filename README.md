@@ -1,6 +1,6 @@
 # Fault detection in photovoltaic systems
 
-This is my (preliminary) master's thesis written on the topic of detecting faults in solar panels.
+This is my master's thesis written on the topic of detecting faults in solar panels.
 
 ## Abstract
 
